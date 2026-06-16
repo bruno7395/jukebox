@@ -67,7 +67,7 @@
             <span class="border border-[#bda06a] p-2 rounded-full"><i class="fa-solid fa-music text-sm"></i></span>
             <span class="font-title tracking-widest text-xs uppercase">Espace Musique</span>
         </button>
-        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">WMP Edition Pro v4.5</span>
+        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">WMP Pro v4.6 (Tri par Dossiers)</span>
     </header>
 
     <main class="flex-grow flex items-center justify-center p-4">
@@ -75,14 +75,14 @@
             <div class="parchment p-8 sm:p-10 rounded-2xl text-stone-900">
                 <div class="text-center mb-8">
                     <h1 class="font-title text-2xl sm:text-3xl tracking-wider text-stone-800 border-b border-[#bda06a]/40 pb-3 inline-block">Discothèque Privée</h1>
-                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Votre jukebox visuel à mémoire instantanée.</p>
+                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Votre jukebox visuel à mémoire par dossiers.</p>
                 </div>
 
                 <div class="space-y-4">
                     <button onclick="showPage('jukebox')" class="w-full bg-white/80 hover:bg-white border border-[#bda06a] text-stone-900 rounded-xl p-4 text-left flex items-center gap-4 transition shadow hover:shadow-md">
                         <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-play-list"></i></div>
                         <div>
-                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Mon Matériel</div>
+                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Médiathèque Graphique</div>
                             <div class="font-serif-classic text-xl font-bold text-stone-800">Ouvrir mon Lecteur WMP</div>
                         </div>
                     </button>
@@ -208,9 +208,7 @@
         let localTracks = []; let currentTrackIndex = -1; let isAnalyzingTags = false; let activeWmpTab = 'tracks';
         let filterAlbumName = null; let filterArtistName = null;
         
-        // TIROIR SECRET N°1 : Les corrections manuelles
         let trackOverrides = JSON.parse(localStorage.getItem('jukebox_track_overrides')) || {};
-        // TIROIR SECRET N°2 : La Mémoire Cache Turbo (Pour ne pas re-scanner les fichiers lisibles à chaque fois !)
         let metadataCache = JSON.parse(localStorage.getItem('jukebox_metadata_cache')) || {};
         let albumCovers = JSON.parse(localStorage.getItem('jukebox_album_covers')) || {}; 
 
@@ -242,14 +240,15 @@
         function clearWmpFilter() { filterAlbumName = null; filterArtistName = null; document.getElementById('active-filter-badge').classList.add('hidden'); renderMusicTable(); }
 
         /* -------------------------------------------------------------
-           🚀 IMPORTATION AVEC VÉRIFICATION DU CACHE INSTANTANÉ
+           🚀 IMPORTATION AVEC CLÉ DE CHEMIN UNIQUE (PAS DE DOUBLONS INJUSTES)
         ------------------------------------------------------------- */
         function importLocalMusic(event, sourceName) {
             const files = event.target.files; if (files.length === 0) return;
             const statusLabel = document.getElementById('music-scan-status');
             statusLabel.innerText = `⏳ Chargement...`;
 
-            const existingKeys = new Set(localTracks.map(t => t.fileName + '|' + t.size));
+            // Utilisation du chemin complet du dossier (webkitRelativePath) pour la sécurité anti-doublon
+            const existingKeys = new Set(localTracks.map(t => t.path + '|' + t.size));
             const newTracks = [];
 
             for (let i = 0; i < files.length; i++) {
@@ -257,7 +256,8 @@
                 const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
                 
                 if (['.mp3', '.wav', '.m4a', '.flac', '.ogg'].includes(fileExt)) {
-                    const key = file.name + '|' + file.size;
+                    // La clé inclut maintenant le dossier d'origine (Album ou Compilation)
+                    const key = file.webkitRelativePath + '|' + file.size;
                     
                     if (!existingKeys.has(key)) {
                         let title = file.name.substring(0, file.name.lastIndexOf('.'));
@@ -265,14 +265,12 @@
                         let album = "Album Inconnu";
                         let isFullyCached = false;
 
-                        // 1. Priorité absolue aux corrections manuelles forcées
                         if (trackOverrides[key]) {
                             title = trackOverrides[key].title;
                             artist = trackOverrides[key].artist;
                             album = trackOverrides[key].album || "Album Inconnu";
                             isFullyCached = true;
                         } 
-                        // 2. MAGIE DU CACHE : Si on l'a déjà analysé par le passé, on ressort les infos instantanément !
                         else if (metadataCache[key]) {
                             title = metadataCache[key].title;
                             artist = metadataCache[key].artist;
@@ -284,13 +282,14 @@
 
                         newTracks.push({
                             fileName: file.name,
+                            path: file.webkitRelativePath, // Enregistrement du chemin complet du fichier
                             size: file.size,
                             title: title,
                             artist: artist,
                             album: album,
                             source: sourceName,
                             fileObject: file,
-                            tagsRead: isFullyCached // Si déjà en cache, on ne perd pas de temps à le ré-analyser !
+                            tagsRead: isFullyCached 
                         });
                         existingKeys.add(key);
                     }
@@ -310,9 +309,6 @@
             document.getElementById('count-artists').innerText = artists.size;
         }
 
-        /* -------------------------------------------------------------
-           🕵️‍♂️ ANALYSEUR ET ENREGISTREUR DANS LE CACHE
-        ------------------------------------------------------------- */
         function startBackgroundTagReader(index) {
             if (index >= localTracks.length) {
                 isAnalyzingTags = false;
@@ -323,9 +319,8 @@
             }
 
             isAnalyzingTags = true; const track = localTracks[index];
-            const key = track.fileName + '|' + track.size;
+            const key = track.path + '|' + track.size;
             
-            // Si le morceau a déjà été extrait (ou est en cache), on fonce directement au suivant sans perdre 1 milliseconde !
             if (track.tagsRead) {
                 setTimeout(() => startBackgroundTagReader(index + 1), 1); return;
             }
@@ -345,7 +340,6 @@
                         if(!albumCovers[track.album]) { albumCovers[track.album] = base64; localStorage.setItem('jukebox_album_covers', JSON.stringify(albumCovers)); }
                     }
 
-                    // NOTATION DANS LE CACHE GLOBAL DE TON PC
                     metadataCache[key] = { title: track.title, artist: track.artist, album: track.album };
                     localStorage.setItem('jukebox_metadata_cache', JSON.stringify(metadataCache));
                     track.tagsRead = true;
@@ -360,7 +354,6 @@
                     setTimeout(() => startBackgroundTagReader(index + 1), 1);
                 },
                 onError: function() {
-                    // Même en cas d'absence de tags, on le met en cache pour ne plus perdre de temps dessus au prochain coup !
                     metadataCache[key] = { title: track.title, artist: track.artist, album: track.album };
                     localStorage.setItem('jukebox_metadata_cache', JSON.stringify(metadataCache));
                     track.tagsRead = true;
@@ -455,7 +448,7 @@
         function saveTrackOverride(event) {
             event.preventDefault(); const index = document.getElementById('edit-track-index').value;
             const newTitle = document.getElementById('edit-track-title').value.trim(); const newArtist = document.getElementById('edit-track-artist').value.trim(); const newAlbum = document.getElementById('edit-track-album').value.trim();
-            const track = localTracks[index]; const key = track.fileName + '|' + track.size;
+            const track = localTracks[index]; const key = track.path + '|' + track.size;
 
             trackOverrides[key] = { title: newTitle, artist: newArtist, album: newAlbum };
             localStorage.setItem('jukebox_track_overrides', JSON.stringify(trackOverrides));
@@ -517,7 +510,7 @@
                                         <h4 class="font-title text-[11px] text-stone-900 font-bold line-clamp-1 leading-tight">${album.title}</h4>
                                         <p class="text-[10px] text-stone-500 font-sans truncate mt-0.5">De : ${artistName}</p>
                                         <p class="text-[10px] text-amber-900 font-serif-classic font-bold italic mt-1">${year}</p>
-                                    </div><div class="text-[9px] text-stone-400 mt-2 border-t border-stone-100 pt-1">${album['track-count'] || '0'} pistes</div>
+                                    </div><div class="text-[9px] text-stone-400 mt-2 border-t border-stone-100 pt-1">${album['track-count'] || '0'} titres</div>
                                 </div>`;
                         });
                         grid.innerHTML = wikiHtmlBuffer;

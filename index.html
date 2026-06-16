@@ -6,7 +6,6 @@
     <title>Mon Jukebox Personnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- DÉCODEUR DE TAGS ET D'IMAGES INTERNES (Style Windows Media Player) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,23 +67,22 @@
             <span class="border border-[#bda06a] p-2 rounded-full"><i class="fa-solid fa-music text-sm"></i></span>
             <span class="font-title tracking-widest text-xs uppercase">Espace Musique</span>
         </button>
-        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">Windows Media Player Édition Privée v4.0</span>
+        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">WMP Edition Pro v4.5</span>
     </header>
 
     <main class="flex-grow flex items-center justify-center p-4">
-        <!-- PAGE ACCUEIL -->
         <div id="page-home" class="w-full max-w-lg">
             <div class="parchment p-8 sm:p-10 rounded-2xl text-stone-900">
                 <div class="text-center mb-8">
                     <h1 class="font-title text-2xl sm:text-3xl tracking-wider text-stone-800 border-b border-[#bda06a]/40 pb-3 inline-block">Discothèque Privée</h1>
-                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Votre jukebox visuel autonome de salon.</p>
+                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Votre jukebox visuel à mémoire instantanée.</p>
                 </div>
 
                 <div class="space-y-4">
                     <button onclick="showPage('jukebox')" class="w-full bg-white/80 hover:bg-white border border-[#bda06a] text-stone-900 rounded-xl p-4 text-left flex items-center gap-4 transition shadow hover:shadow-md">
                         <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-play-list"></i></div>
                         <div>
-                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Médiathèque Graphique</div>
+                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Mon Matériel</div>
                             <div class="font-serif-classic text-xl font-bold text-stone-800">Ouvrir mon Lecteur WMP</div>
                         </div>
                     </button>
@@ -100,14 +98,12 @@
             </div>
         </div>
 
-        <!-- JUKEBOX LOCAL STYLE WINDOWS MEDIA PLAYER -->
         <div id="page-jukebox" class="hidden w-full max-w-6xl">
             <div class="glass-panel rounded-2xl p-6 md:p-8">
                 
-                <!-- ENTÊTE DE COMMANDE -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 border-b border-[#bda06a]/20 pb-4">
                     <div>
-                        <span class="text-[#bda06a] uppercase tracking-widest text-xs font-title">Lecteur Multimédia Visuel</span>
+                        <span class="text-[#bda06a] uppercase tracking-widest text-xs font-title">Lecteur Intelligent</span>
                         <h2 class="font-title text-3xl text-white mt-1">Ma Médiathèque Personnelle</h2>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -123,17 +119,10 @@
                     </div>
                 </div>
 
-                <!-- SYSTEME D'ONGLETS STYLE COPIE CONFORME WMP -->
                 <div class="flex gap-2 mb-6 border-b border-stone-800 pb-2">
-                    <button onclick="switchWmpTab('tracks')" id="tab-btn-tracks" class="wmp-tab-btn active px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2">
-                        <i class="fa-solid fa-bars-staggered"></i> Morceaux
-                    </button>
-                    <button onclick="switchWmpTab('albums')" id="tab-btn-albums" class="wmp-tab-btn px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2">
-                        <i class="fa-solid fa-compact-disc"></i> Albums (<span id="count-albums">0</span>)
-                    </button>
-                    <button onclick="switchWmpTab('artists')" id="tab-btn-artists" class="wmp-tab-btn px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-music"></i> Artistes (<span id="count-artists">0</span>)
-                    </button>
+                    <button onclick="switchWmpTab('tracks')" id="tab-btn-tracks" class="wmp-tab-btn active px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> Morceaux</button>
+                    <button onclick="switchWmpTab('albums')" id="tab-btn-albums" class="wmp-tab-btn px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2"><i class="fa-solid fa-compact-disc"></i> Albums (<span id="count-albums">0</span>)</button>
+                    <button onclick="switchWmpTab('artists')" id="tab-btn-artists" class="wmp-tab-btn px-4 py-2 rounded text-xs font-title uppercase tracking-wider text-stone-300 hover:bg-white/5 transition flex items-center gap-2"><i class="fa-solid fa-user-music"></i> Artistes (<span id="count-artists">0</span>)</button>
                     
                     <div id="active-filter-badge" class="hidden ml-auto items-center gap-2 text-xs bg-[#bda06a]/20 border border-[#bda06a] text-[#bda06a] px-3 py-1 rounded-full">
                         <span id="filter-badge-text">Filtre actif</span>
@@ -141,11 +130,8 @@
                     </div>
                 </div>
 
-                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide">Base de données en attente. Scannez vos répertoires ci-dessus pour peupler l'interface graphique.</div>
+                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide">En attente de scan...</div>
 
-                <!-- ZONE DE CONTENU DYNAMIQUE DES ONGLETS -->
-                
-                <!-- 1. VUE TABLEAU (MORCEAUX) -->
                 <div id="wmp-view-tracks" class="overflow-x-auto bg-stone-900/60 rounded-xl border border-stone-800 max-h-[50vh] overflow-y-auto">
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
@@ -158,127 +144,77 @@
                             </tr>
                         </thead>
                         <tbody id="music-list-body" class="font-sans-clean text-stone-300">
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Vos morceaux scannés s'afficheront ici...</td>
-                            </tr>
+                            <tr><td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Sélectionnez vos répertoires...</td></tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- 2. VUE MINIATURES (ALBUMS) -->
-                <div id="wmp-view-albums" class="hidden max-h-[50vh] overflow-y-auto p-2">
-                    <div id="albums-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-                </div>
-
-                <!-- 3. VUE MINIATURES (ARTISTES) -->
-                <div id="wmp-view-artists" class="hidden max-h-[50vh] overflow-y-auto p-2">
-                    <div id="artists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-                </div>
-
+                <div id="wmp-view-albums" class="hidden max-h-[50vh] overflow-y-auto p-2"><div id="albums-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div>
+                <div id="wmp-view-artists" class="hidden max-h-[50vh] overflow-y-auto p-2"><div id="artists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div>
             </div>
         </div>
 
-        <!-- INTERROGATION MUSICBRAINZ -->
         <div id="page-wiki" class="hidden w-full max-w-6xl">
             <div class="parchment rounded-2xl p-6 md:p-8 text-stone-900">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#bda06a]/40 pb-6">
-                    <div>
-                        <span class="text-amber-800 uppercase tracking-widest text-xs font-title">Base de Données Ouverte</span>
-                        <h2 class="font-title text-3xl text-stone-800 mt-1">Explorateur MusicBrainz</h2>
-                    </div>
+                    <div><span class="text-amber-800 uppercase tracking-widest text-xs font-title">Base de Données Ouverte</span><h2 class="font-title text-3xl text-stone-800 mt-1">Explorateur MusicBrainz</h2></div>
                     <button onclick="retourAccueil()" class="border border-stone-400 text-stone-700 font-title text-xs uppercase px-4 py-2.5 rounded hover:bg-stone-900/5 transition">Retour</button>
                 </div>
-
                 <div class="max-w-xl mx-auto mb-8 bg-white/60 p-4 rounded-xl border border-[#bda06a]/50 flex gap-2">
                     <input type="text" id="wiki-search-input" onkeypress="if(event.key === 'Enter') triggerWikiSearch()" placeholder="Rechercher un artiste ou un album..." class="flex-grow bg-white border border-stone-300 rounded-lg px-4 py-2 text-stone-900 font-serif-classic text-lg shadow-inner">
-                    <button onclick="triggerWikiSearch()" class="bg-amber-800 hover:bg-amber-900 text-white font-title text-xs uppercase px-6 py-2 rounded-lg transition tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-gavel"></i> Interroger
-                    </button>
+                    <button onclick="triggerWikiSearch()" class="bg-amber-800 hover:bg-amber-900 text-white font-title text-xs uppercase px-6 py-2 rounded-lg transition tracking-wider flex items-center gap-2"><i class="fa-solid fa-gavel"></i> Interroger</button>
                 </div>
-
-                <div id="wiki-status" class="text-center text-stone-600 font-serif-classic italic text-lg mb-4">Recherche globale connectée au réseau ouvert Cover Art Archive...</div>
+                <div id="wiki-status" class="text-center text-stone-600 font-serif-classic italic text-lg mb-4">Recherche globale...</div>
                 <div id="wiki-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[50vh] overflow-y-auto p-2"></div>
             </div>
         </div>
     </main>
 
-    <!-- MODAL DE CORRECTION MANUELLE -->
     <div id="edit-track-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
         <div class="parchment rounded-xl max-w-md w-full p-6 text-stone-900">
             <h3 class="font-title text-xl text-stone-800 border-b border-[#bda06a]/40 pb-3 mb-4"><i class="fa-solid fa-pen-to-square"></i> Édition Métadonnées</h3>
             <form onsubmit="saveTrackOverride(event)" class="space-y-4">
                 <input type="hidden" id="edit-track-index">
-                <div>
-                    <label class="block text-xs font-title text-stone-700 uppercase mb-1">Titre du morceau</label>
-                    <input type="text" id="edit-track-title" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900 font-semibold text-md">
-                </div>
-                <div>
-                    <label class="block text-xs font-title text-stone-700 uppercase mb-1">Artiste</label>
-                    <input type="text" id="edit-track-artist" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900">
-                </div>
-                <div>
-                    <label class="block text-xs font-title text-stone-700 uppercase mb-1">Album</label>
-                    <input type="text" id="edit-track-album" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900">
-                </div>
+                <div><label class="block text-xs font-title text-stone-700 uppercase mb-1">Titre</label><input type="text" id="edit-track-title" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900 font-semibold text-md"></div>
+                <div><label class="block text-xs font-title text-stone-700 uppercase mb-1">Artiste</label><input type="text" id="edit-track-artist" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900"></div>
+                <div><label class="block text-xs font-title text-stone-700 uppercase mb-1">Album</label><input type="text" id="edit-track-album" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900"></div>
                 <div class="flex gap-3 pt-4 border-t border-[#bda06a]/20">
-                    <button type="submit" class="flex-grow bg-[#8b5a2b] text-white font-title text-xs uppercase py-3 rounded">Enregistrer la correction</button>
+                    <button type="submit" class="flex-grow bg-[#8b5a2b] text-white font-title text-xs uppercase py-3 rounded">Enregistrer</button>
                     <button type="button" onclick="closeEditModal()" class="border border-stone-400 text-stone-700 font-title text-xs uppercase px-4 rounded">Annuler</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- BARRE DE LECTURE AUDIO CONSTANTE -->
     <div id="audio-player-bar" class="fixed bottom-0 left-0 right-0 glass-panel border-t border-[#bda06a]/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50 transform translate-y-full transition-transform duration-300">
         <div class="flex items-center gap-3 w-full sm:w-1/3">
-            <div id="player-album-cover" class="w-12 h-12 rounded bg-stone-950 border border-stone-800 flex items-center justify-center text-[#bda06a] shrink-0 overflow-hidden">
-                <i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>
-            </div>
-            <div class="overflow-hidden">
-                <div id="player-track-title" class="font-title text-sm text-white truncate">Aucun morceau</div>
-                <div id="player-track-artist" class="text-xs text-[#bda06a] truncate">En attente de lecture</div>
-            </div>
+            <div id="player-album-cover" class="w-12 h-12 rounded bg-stone-950 border border-stone-800 flex items-center justify-center text-[#bda06a] shrink-0 overflow-hidden"><i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i></div>
+            <div class="overflow-hidden"><div id="player-track-title" class="font-title text-sm text-white truncate">Aucun morceau</div><div id="player-track-artist" class="text-xs text-[#bda06a] truncate">En attente</div></div>
         </div>
-
         <div class="flex flex-col items-center gap-1 w-full sm:w-1/3">
             <div class="flex items-center gap-4">
                 <button onclick="playerPrevious()" class="text-stone-400 hover:text-white transition"><i class="fa-solid fa-backward-step text-lg"></i></button>
                 <button onclick="togglePlayPause()" id="player-play-btn" class="w-10 h-10 rounded-full bg-[#bda06a] text-stone-950 flex items-center justify-center hover:scale-105 transition shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></button>
                 <button onclick="playerNext()" class="text-stone-400 hover:text-white transition"><i class="fa-solid fa-forward-step text-lg"></i></button>
             </div>
-            <div class="flex items-center gap-2 w-full text-[10px] text-stone-400">
-                <span id="player-time-current">0:00</span>
-                <input type="range" id="player-progress" value="0" min="0" step="1" oninput="seekAudio()" class="w-full accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer">
-                <span id="player-time-total">0:00</span>
-            </div>
+            <div class="flex items-center gap-2 w-full text-[10px] text-stone-400"><span id="player-time-current">0:00</span><input type="range" id="player-progress" value="0" min="0" step="1" oninput="seekAudio()" class="w-full accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer"><span id="player-time-total">0:00</span></div>
         </div>
-
-        <div class="flex items-center justify-end gap-3 w-full sm:w-1/3">
-            <span id="player-track-source" class="text-[10px] bg-stone-800 border border-stone-700 px-2 py-0.5 rounded text-stone-400 font-title uppercase">SOURCE</span>
-            <div class="flex items-center gap-1.5 text-stone-400">
-                <i class="fa-solid fa-volume-low text-xs"></i>
-                <input type="range" id="player-volume" value="80" min="0" max="100" oninput="setPlayerVolume()" class="w-20 accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer">
-            </div>
-        </div>
+        <div class="flex items-center justify-end gap-3 w-full sm:w-1/3"><span id="player-track-source" class="text-[10px] bg-stone-800 border border-stone-700 px-2 py-0.5 rounded text-stone-400 font-title uppercase">SOURCE</span><div class="flex items-center gap-1.5 text-stone-400"><i class="fa-solid fa-volume-low text-xs"></i><input type="range" id="player-volume" value="80" min="0" max="100" oninput="setPlayerVolume()" class="w-20 accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer"></div></div>
     </div>
 
     <audio id="main-audio-element" ontimeupdate="onAudioTimeUpdate()" onended="playerNext()"></audio>
 
     <script>
-        let localTracks = []; 
-        let currentTrackIndex = -1;
-        let isAnalyzingTags = false;
-        let activeWmpTab = 'tracks';
+        let localTracks = []; let currentTrackIndex = -1; let isAnalyzingTags = false; let activeWmpTab = 'tracks';
+        let filterAlbumName = null; let filterArtistName = null;
         
-        // Filtres actifs de navigation (clic sur album/artiste)
-        let filterAlbumName = null;
-        let filterArtistName = null;
-
-        // Dictionnaires pour stocker les pochettes d'albums trouvées au scan (évite les doublons en mémoire)
-        let albumCovers = {}; 
+        // TIROIR SECRET N°1 : Les corrections manuelles
+        let trackOverrides = JSON.parse(localStorage.getItem('jukebox_track_overrides')) || {};
+        // TIROIR SECRET N°2 : La Mémoire Cache Turbo (Pour ne pas re-scanner les fichiers lisibles à chaque fois !)
+        let metadataCache = JSON.parse(localStorage.getItem('jukebox_metadata_cache')) || {};
+        let albumCovers = JSON.parse(localStorage.getItem('jukebox_album_covers')) || {}; 
 
         const audioElement = document.getElementById('main-audio-element');
-        let trackOverrides = JSON.parse(localStorage.getItem('jukebox_track_overrides')) || {};
 
         function showPage(pageId) {
             document.getElementById('page-home').classList.add('hidden');
@@ -287,67 +223,31 @@
             document.getElementById(`page-${pageId}`).classList.remove('hidden');
         }
 
-        function retourAccueil() {
-            document.getElementById('wiki-search-input').value = "";
-            showPage('home');
-        }
+        function retourAccueil() { document.getElementById('wiki-search-input').value = ""; showPage('home'); }
 
-        /* -------------------------------------------------------------
-           📊 CONTROLE DE L'INTERFACE ONGLETS (STYLE WMP)
-        ------------------------------------------------------------- */
         function switchWmpTab(tabName) {
             activeWmpTab = tabName;
             document.querySelectorAll('.wmp-tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`wmp-view-tracks`).classList.add('hidden');
             document.getElementById(`wmp-view-albums`).classList.add('hidden');
             document.getElementById(`wmp-view-artists`).classList.add('hidden');
-
             document.getElementById(`tab-btn-${tabName}`).classList.add('active');
             document.getElementById(`wmp-view-${tabName}`).classList.remove('hidden');
-
-            if(tabName === 'albums') renderAlbumsGrid();
-            if(tabName === 'artists') renderArtistsGrid();
+            if(tabName === 'albums') renderAlbumsGrid(); if(tabName === 'artists') renderArtistsGrid();
         }
 
-        function filterByAlbum(albumName) {
-            filterAlbumName = albumName;
-            filterArtistName = null;
-            updateFilterBadge(`Album : ${albumName}`);
-            switchWmpTab('tracks');
-            renderMusicTable();
-        }
-
-        function filterByArtist(artistName) {
-            filterArtistName = artistName;
-            filterAlbumName = null;
-            updateFilterBadge(`Artiste : ${artistName}`);
-            switchWmpTab('tracks');
-            renderMusicTable();
-        }
-
-        function updateFilterBadge(text) {
-            const badge = document.getElementById('active-filter-badge');
-            document.getElementById('filter-badge-text').innerText = text;
-            badge.classList.remove('hidden');
-            badge.classList.add('flex');
-        }
-
-        function clearWmpFilter() {
-            filterAlbumName = null;
-            filterArtistName = null;
-            document.getElementById('active-filter-badge').classList.add('hidden');
-            renderMusicTable();
-        }
+        function filterByAlbum(albumName) { filterAlbumName = albumName; filterArtistName = null; updateFilterBadge(`Album : ${albumName}`); switchWmpTab('tracks'); renderMusicTable(); }
+        function filterByArtist(artistName) { filterArtistName = artistName; filterAlbumName = null; updateFilterBadge(`Artiste : ${artistName}`); switchWmpTab('tracks'); renderMusicTable(); }
+        function updateFilterBadge(text) { const badge = document.getElementById('active-filter-badge'); document.getElementById('filter-badge-text').innerText = text; badge.classList.remove('hidden'); badge.classList.add('flex'); }
+        function clearWmpFilter() { filterAlbumName = null; filterArtistName = null; document.getElementById('active-filter-badge').classList.add('hidden'); renderMusicTable(); }
 
         /* -------------------------------------------------------------
-           🚀 IMPORTATION INTÉGRALE AVEC GESTION DES ALBUMS
+           🚀 IMPORTATION AVEC VÉRIFICATION DU CACHE INSTANTANÉ
         ------------------------------------------------------------- */
         function importLocalMusic(event, sourceName) {
-            const files = event.target.files;
-            if (files.length === 0) return;
-
+            const files = event.target.files; if (files.length === 0) return;
             const statusLabel = document.getElementById('music-scan-status');
-            statusLabel.innerText = `⏳ Indexation de ${files.length} fichiers...`;
+            statusLabel.innerText = `⏳ Chargement...`;
 
             const existingKeys = new Set(localTracks.map(t => t.fileName + '|' + t.size));
             const newTracks = [];
@@ -363,17 +263,23 @@
                         let title = file.name.substring(0, file.name.lastIndexOf('.'));
                         let artist = "Artiste Inconnu";
                         let album = "Album Inconnu";
+                        let isFullyCached = false;
 
-                        if (title.includes('-')) {
-                            let parts = title.split('-');
-                            artist = parts[0].trim();
-                            title = parts[1].trim();
-                        }
-
+                        // 1. Priorité absolue aux corrections manuelles forcées
                         if (trackOverrides[key]) {
                             title = trackOverrides[key].title;
                             artist = trackOverrides[key].artist;
                             album = trackOverrides[key].album || "Album Inconnu";
+                            isFullyCached = true;
+                        } 
+                        // 2. MAGIE DU CACHE : Si on l'a déjà analysé par le passé, on ressort les infos instantanément !
+                        else if (metadataCache[key]) {
+                            title = metadataCache[key].title;
+                            artist = metadataCache[key].artist;
+                            album = metadataCache[key].album;
+                            isFullyCached = true;
+                        } else if (title.includes('-')) {
+                            let parts = title.split('-'); artist = parts[0].trim(); title = parts[1].trim();
                         }
 
                         newTracks.push({
@@ -384,23 +290,17 @@
                             album: album,
                             source: sourceName,
                             fileObject: file,
-                            coverUrl: null
+                            tagsRead: isFullyCached // Si déjà en cache, on ne perd pas de temps à le ré-analyser !
                         });
                         existingKeys.add(key);
                     }
                 }
             }
 
-            const startIndex = localTracks.length;
-            localTracks = localTracks.concat(newTracks);
+            const startIndex = localTracks.length; localTracks = localTracks.concat(newTracks);
+            updateCounters(); renderMusicTable();
             
-            // Calculer les compteurs uniques d'onglets
-            updateCounters();
-            renderMusicTable();
-            
-            if(!isAnalyzingTags) {
-                startBackgroundTagReader(startIndex);
-            }
+            if(!isAnalyzingTags) { startBackgroundTagReader(startIndex); }
         }
 
         function updateCounters() {
@@ -411,104 +311,85 @@
         }
 
         /* -------------------------------------------------------------
-           🕵️‍♂️ EXTRACTION DES TAGS ID3 + EXTRACTION DE LA VRAIE POCHETTE PHOTO
+           🕵️‍♂️ ANALYSEUR ET ENREGISTREUR DANS LE CACHE
         ------------------------------------------------------------- */
         function startBackgroundTagReader(index) {
             if (index >= localTracks.length) {
                 isAnalyzingTags = false;
-                document.getElementById('music-scan-status').innerText = `✅ WMP Synchro ! ${localTracks.length} titres indexés, triés par pochettes et artistes.`;
+                document.getElementById('music-scan-status').innerText = `✅ WMP Prêt ! ${localTracks.length} morceaux chargés instantanément.`;
                 updateCounters();
-                if(activeWmpTab === 'albums') renderAlbumsGrid();
-                if(activeWmpTab === 'artists') renderArtistsGrid();
+                if(activeWmpTab === 'albums') renderAlbumsGrid(); if(activeWmpTab === 'artists') renderArtistsGrid();
                 return;
             }
 
-            isAnalyzingTags = true;
-            const track = localTracks[index];
+            isAnalyzingTags = true; const track = localTracks[index];
             const key = track.fileName + '|' + track.size;
             
-            if (trackOverrides[key]) {
-                setTimeout(() => startBackgroundTagReader(index + 1), 2);
-                return;
+            // Si le morceau a déjà été extrait (ou est en cache), on fonce directement au suivant sans perdre 1 milliseconde !
+            if (track.tagsRead) {
+                setTimeout(() => startBackgroundTagReader(index + 1), 1); return;
             }
 
-            document.getElementById('music-scan-status').innerText = `🔍 Extraction des pochettes d'albums originales (${index + 1}/${localTracks.length})...`;
+            document.getElementById('music-scan-status').innerText = `🔍 Analyse et mise en cache des morceaux (${index + 1}/${localTracks.length})...`;
 
             window.jsmediatags.read(track.fileObject, {
                 onSuccess: function(tag) {
-                    let updated = false;
-                    if (tag.tags.title && tag.tags.title.trim() !== "") { track.title = tag.tags.title.trim(); updated = true; }
-                    if (tag.tags.artist && tag.tags.artist.trim() !== "") { track.artist = tag.tags.artist.trim(); updated = true; }
-                    if (tag.tags.album && tag.tags.album.trim() !== "") { track.album = tag.tags.album.trim(); updated = true; }
+                    if (tag.tags.title && tag.tags.title.trim() !== "") track.title = tag.tags.title.trim();
+                    if (tag.tags.artist && tag.tags.artist.trim() !== "") track.artist = tag.tags.artist.trim();
+                    if (tag.tags.album && tag.tags.album.trim() !== "") track.album = tag.tags.album.trim();
                     
-                    // EXTRACTION DE LA POCHETTE PHOTO DE L'ALBUM (Si présente dans le fichier MP3)
                     if (tag.tags.picture) {
-                        const pic = tag.tags.picture;
-                        let base64String = "";
-                        for (let i = 0; i < pic.data.length; i++) {
-                            base64String += String.fromCharCode(pic.data[i]);
-                        }
+                        const pic = tag.tags.picture; let base64String = "";
+                        for (let i = 0; i < pic.data.length; i++) { base64String += String.fromCharCode(pic.data[i]); }
                         const base64 = "data:" + pic.format + ";base64," + window.btoa(base64String);
-                        track.coverUrl = base64;
-                        
-                        // Assigner cette photo comme image officielle de cet Album
-                        if(!albumCovers[track.album]) {
-                            albumCovers[track.album] = base64;
-                        }
+                        if(!albumCovers[track.album]) { albumCovers[track.album] = base64; localStorage.setItem('jukebox_album_covers', JSON.stringify(albumCovers)); }
                     }
 
-                    if (updated) {
-                        const titleEl = document.getElementById(`track-title-${index}`);
-                        const artistEl = document.getElementById(`track-artist-${index}`);
-                        const albumEl = document.getElementById(`track-album-${index}`);
-                        if (titleEl) titleEl.innerText = track.title;
-                        if (artistEl) artistEl.innerText = track.artist;
-                        if (albumEl) albumEl.innerText = track.album;
-                    }
+                    // NOTATION DANS LE CACHE GLOBAL DE TON PC
+                    metadataCache[key] = { title: track.title, artist: track.artist, album: track.album };
+                    localStorage.setItem('jukebox_metadata_cache', JSON.stringify(metadataCache));
+                    track.tagsRead = true;
+
+                    const titleEl = document.getElementById(`track-title-${index}`);
+                    const artistEl = document.getElementById(`track-artist-${index}`);
+                    const albumEl = document.getElementById(`track-album-${index}`);
+                    if (titleEl) titleEl.innerText = track.title;
+                    if (artistEl) artistEl.innerText = track.artist;
+                    if (albumEl) albumEl.innerText = track.album;
                     
-                    setTimeout(() => startBackgroundTagReader(index + 1), 2);
+                    setTimeout(() => startBackgroundTagReader(index + 1), 1);
                 },
                 onError: function() {
-                    setTimeout(() => startBackgroundTagReader(index + 1), 2);
+                    // Même en cas d'absence de tags, on le met en cache pour ne plus perdre de temps dessus au prochain coup !
+                    metadataCache[key] = { title: track.title, artist: track.artist, album: track.album };
+                    localStorage.setItem('jukebox_metadata_cache', JSON.stringify(metadataCache));
+                    track.tagsRead = true;
+                    setTimeout(() => startBackgroundTagReader(index + 1), 1);
                 }
             });
         }
 
-        /* -------------------------------------------------------------
-           🖼️ DESSIN DE LA VUE TABLEAU (MORCEAUX FILTRÉS)
-        ------------------------------------------------------------- */
         function renderMusicTable() {
-            const tbody = document.getElementById('music-list-body');
-            if(!tbody) return;
-
-            // Filtrage WMP intelligent
+            const tbody = document.getElementById('music-list-body'); if(!tbody) return;
             let filtered = localTracks;
             if(filterAlbumName) filtered = localTracks.filter(t => t.album === filterAlbumName);
             if(filterArtistName) filtered = localTracks.filter(t => t.artist === filterArtistName);
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Aucun morceau ne correspond aux filtres...</td></tr>`;
-                return;
-            }
+            if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 italic">Aucun morceau...</td></tr>`; return; }
 
             let giantHtmlBuffer = "";
             for(let i = 0; i < localTracks.length; i++) {
                 const track = localTracks[i];
-                
-                // Ignorer si pas dans le filtre actif
                 if(filterAlbumName && track.album !== filterAlbumName) continue;
                 if(filterArtistName && track.artist !== filterArtistName) continue;
-
                 const isCurrent = (i === currentTrackIndex);
 
                 giantHtmlBuffer += `
                     <tr class="border-b border-stone-800/40 hover:bg-white/5 transition duration-150 ${isCurrent ? 'bg-[#bda06a]/10 text-[#bda06a]' : ''}">
-                        <td class="p-3 pl-6 text-xs font-semibold">
-                            ${isCurrent ? '<span class="text-green-500 animate-pulse">▶ EN LECTURE</span>' : '<span class="text-stone-500">Prêt</span>'}
-                        </td>
+                        <td class="p-3 pl-6 text-xs font-semibold">${isCurrent ? '▶ LECTURE' : 'Prêt'}</td>
                         <td id="track-title-${i}" class="p-3 font-semibold text-white max-w-xs truncate">${track.title}</td>
-                        <td id="track-artist-${i}" class="p-3 text-stone-400 font-serif-classic text-base max-w-xs truncate hover:text-[#bda06a] cursor-pointer" onclick="filterByArtist('${track.artist.replace(/'/g, "\\'")}')"><i class="fa-solid fa-microphone text-[10px] opacity-40 mr-1"></i> ${track.artist}</td>
-                        <td id="track-album-${i}" class="p-3 text-stone-400 max-w-xs truncate hover:text-[#bda06a] cursor-pointer" onclick="filterByAlbum('${track.album.replace(/'/g, "\\'")}')"><i class="fa-solid fa-compact-disc text-[10px] opacity-40 mr-1"></i> ${track.album}</td>
+                        <td id="track-artist-${i}" class="p-3 text-stone-400 text-base max-w-xs truncate hover:text-[#bda06a] cursor-pointer" onclick="filterByArtist('${track.artist.replace(/'/g, "\\'")}')">${track.artist}</td>
+                        <td id="track-album-${i}" class="p-3 text-stone-400 max-w-xs truncate hover:text-[#bda06a] cursor-pointer" onclick="filterByAlbum('${track.album.replace(/'/g, "\\'")}')">${track.album}</td>
                         <td class="p-3 text-xs text-stone-400"><span class="px-2 py-0.5 rounded bg-stone-950/40 border border-stone-800">${track.source}</span></td>
                         <td class="p-3 text-right pr-6 space-x-1">
                             <button onclick="openEditModal(${i})" class="text-stone-400 hover:text-[#bda06a] p-2 transition"><i class="fa-regular fa-pen-to-square"></i></button>
@@ -519,165 +400,87 @@
             tbody.innerHTML = giantHtmlBuffer;
         }
 
-        /* -------------------------------------------------------------
-           🖼️ DESSIN DE LA GRILLE DES MINIATURES D'ALBUMS
-        ------------------------------------------------------------- */
         function renderAlbumsGrid() {
-            const grid = document.getElementById('albums-grid');
-            if(!grid) return;
-
-            // Extraire la liste des albums uniques
+            const grid = document.getElementById('albums-grid'); if(!grid) return;
             let uniqueAlbums = {};
             localTracks.forEach(t => {
-                if(!uniqueAlbums[t.album]) {
-                    uniqueAlbums[t.album] = {
-                        name: t.album,
-                        artist: t.artist,
-                        count: 0
-                    };
-                }
+                if(!uniqueAlbums[t.album]) uniqueAlbums[t.album] = { name: t.album, artist: t.artist, count: 0 };
                 uniqueAlbums[t.album].count++;
             });
-
-            if(Object.keys(uniqueAlbums).length === 0) {
-                grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500 italic">Aucun album scanné. Lancez un scan...</div>`;
-                return;
-            }
-
+            if(Object.keys(uniqueAlbums).length === 0) { grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500">Aucun album...</div>`; return; }
             let html = "";
             Object.values(uniqueAlbums).forEach(album => {
-                // Utiliser la couverture extraite ou l'icône vinyle par défaut
-                const cover = albumCovers[album.name] || 'VINYL_PLACEHOLDER';
-                
+                const cover = albumCovers[album.name];
                 html += `
                     <div onclick="filterByAlbum('${album.name.replace(/'/g, "\\'")}')" class="bg-stone-950/40 p-3 rounded-xl border border-stone-800/80 hover:border-[#bda06a]/60 shadow-sm flex flex-col justify-between hover:shadow-md transition cursor-pointer group text-center">
                         <div>
                             <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-800 bg-gradient-to-br from-stone-900 to-stone-950 mb-2 flex items-center justify-center relative shadow-inner group-hover:scale-[1.02] transition duration-200">
-                                ${cover === 'VINYL_PLACEHOLDER' ? 
-                                    `<div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-stone-950">
-                                        <i class="fa-solid fa-compact-disc text-4xl text-stone-800 mb-1 animate-pulse"></i>
-                                        <span class="text-[9px] text-stone-500 uppercase tracking-widest font-title truncate w-full">${album.name}</span>
-                                     </div>` : 
-                                    `<img src="${cover}" class="w-full h-full object-cover">`
-                                }
+                                ${!cover ? `<div class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-stone-950"><i class="fa-solid fa-compact-disc text-4xl text-stone-800 mb-1"></i><span class="text-[9px] text-stone-500 uppercase tracking-widest font-title truncate w-full">${album.name}</span></div>` : `<img src="${cover}" class="w-full h-full object-cover">`}
                             </div>
                             <h4 class="font-title text-[11px] text-white font-bold line-clamp-1 leading-tight group-hover:text-[#bda06a]">${album.name}</h4>
                             <p class="text-[10px] text-stone-400 font-serif-classic italic mt-0.5 truncate">Par : ${album.artist}</p>
-                        </div>
-                        <div class="text-[9px] text-stone-500 mt-2 border-t border-stone-900 pt-1">${album.count} titres</div>
+                        </div><div class="text-[9px] text-stone-500 mt-2 border-t border-stone-900 pt-1">${album.count} titres</div>
                     </div>`;
             });
             grid.innerHTML = html;
         }
 
-        /* -------------------------------------------------------------
-           🖼️ DESSIN DE LA GRILLE DES MINIATURES D'ARTISTES
-        ------------------------------------------------------------- */
         function renderArtistsGrid() {
-            const grid = document.getElementById('artists-grid');
-            if(!grid) return;
-
+            const grid = document.getElementById('artists-grid'); if(!grid) return;
             let uniqueArtists = {};
             localTracks.forEach(t => {
-                if(!uniqueArtists[t.artist]) {
-                    uniqueArtists[t.artist] = {
-                        name: t.artist,
-                        count: 0
-                    };
-                }
+                if(!uniqueArtists[t.artist]) uniqueArtists[t.artist] = { name: t.artist, count: 0 };
                 uniqueArtists[t.artist].count++;
             });
-
-            if(Object.keys(uniqueArtists).length === 0) {
-                grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500 italic">Aucun artiste scanné.</div>`;
-                return;
-            }
-
             let html = "";
             Object.values(uniqueArtists).forEach(artist => {
                 html += `
                     <div onclick="filterByArtist('${artist.name.replace(/'/g, "\\'")}')" class="bg-stone-950/40 p-4 rounded-xl border border-stone-800/80 hover:border-[#bda06a]/60 shadow-sm flex flex-col justify-between hover:shadow-md transition cursor-pointer group text-center">
                         <div class="flex flex-col items-center">
-                            <div class="w-16 h-16 rounded-full bg-[#8b5a2b]/20 border border-[#bda06a]/30 flex items-center justify-center text-[#bda06a] mb-2 shadow-md group-hover:bg-[#bda06a]/20 transition">
-                                <i class="fa-solid fa-microphone-lines text-xl"></i>
-                            </div>
+                            <div class="w-16 h-16 rounded-full bg-[#8b5a2b]/20 border border-[#bda06a]/30 flex items-center justify-center text-[#bda06a] mb-2 shadow-md group-hover:bg-[#bda06a]/20 transition"><i class="fa-solid fa-microphone-lines text-xl"></i></div>
                             <h4 class="font-title text-xs text-white font-bold line-clamp-2 leading-tight group-hover:text-[#bda06a]">${artist.name}</h4>
-                        </div>
-                        <div class="text-[10px] text-stone-500 mt-3 border-t border-stone-900 pt-1">${artist.count} morceaux</div>
+                        </div><div class="text-[10px] text-stone-500 mt-3 border-t border-stone-900 pt-1">${artist.count} morceaux</div>
                     </div>`;
             });
             grid.innerHTML = html;
         }
 
-        /* -------------------------------------------------------------
-           📝 MODIFICATION MANUELLE AVEC PRISE EN CHARGE ALBUM
-        ------------------------------------------------------------- */
         function openEditModal(index) {
-            const track = localTracks[index];
-            document.getElementById('edit-track-index').value = index;
-            document.getElementById('edit-track-title').value = track.title;
-            document.getElementById('edit-track-artist').value = track.artist;
-            document.getElementById('edit-track-album').value = track.album || "Album Inconnu";
-            document.getElementById('edit-track-modal').classList.remove('hidden');
+            const track = localTracks[index]; document.getElementById('edit-track-index').value = index;
+            document.getElementById('edit-track-title').value = track.title; document.getElementById('edit-track-artist').value = track.artist;
+            document.getElementById('edit-track-album').value = track.album || "Album Inconnu"; document.getElementById('edit-track-modal').classList.remove('hidden');
         }
-
         function closeEditModal() { document.getElementById('edit-track-modal').classList.add('hidden'); }
 
         function saveTrackOverride(event) {
-            event.preventDefault();
-            const index = document.getElementById('edit-track-index').value;
-            const newTitle = document.getElementById('edit-track-title').value.trim();
-            const newArtist = document.getElementById('edit-track-artist').value.trim();
-            const newAlbum = document.getElementById('edit-track-album').value.trim();
-            
-            const track = localTracks[index];
-            const key = track.fileName + '|' + track.size;
+            event.preventDefault(); const index = document.getElementById('edit-track-index').value;
+            const newTitle = document.getElementById('edit-track-title').value.trim(); const newArtist = document.getElementById('edit-track-artist').value.trim(); const newAlbum = document.getElementById('edit-track-album').value.trim();
+            const track = localTracks[index]; const key = track.fileName + '|' + track.size;
 
             trackOverrides[key] = { title: newTitle, artist: newArtist, album: newAlbum };
             localStorage.setItem('jukebox_track_overrides', JSON.stringify(trackOverrides));
-
             track.title = newTitle; track.artist = newArtist; track.album = newAlbum;
 
-            if (parseInt(index) === currentTrackIndex) {
-                document.getElementById('player-track-title').innerText = newTitle;
-                document.getElementById('player-track-artist').innerText = newArtist;
-            }
-
-            closeEditModal();
-            updateCounters();
-            renderMusicTable();
+            if (parseInt(index) === currentTrackIndex) { document.getElementById('player-track-title').innerText = newTitle; document.getElementById('player-track-artist').innerText = newArtist; }
+            closeEditModal(); updateCounters(); renderMusicTable();
         }
 
         function playLocalTrack(index) {
-            if (index < 0 || index >= localTracks.length) return;
-            if (currentTrackIndex === index) { togglePlayPause(); return; }
+            if (index < 0 || index >= localTracks.length) return; if (currentTrackIndex === index) { togglePlayPause(); return; }
+            currentTrackIndex = index; const track = localTracks[currentTrackIndex];
+            audioElement.src = URL.createObjectURL(track.fileObject); audioElement.play();
 
-            currentTrackIndex = index;
-            const track = localTracks[currentTrackIndex];
-            audioElement.src = URL.createObjectURL(track.fileObject);
-            audioElement.play();
-
-            document.getElementById('player-track-title').innerText = track.title;
-            document.getElementById('player-track-artist').innerText = track.artist;
-            document.getElementById('player-track-source').innerText = track.source;
-            document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-pause"></i>`;
+            document.getElementById('player-track-title').innerText = track.title; document.getElementById('player-track-artist').innerText = track.artist;
+            document.getElementById('player-track-source').innerText = track.source; document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-pause"></i>`;
             
-            // Affichage de la pochette miniature dans le lecteur du bas
-            const coverEl = document.getElementById('player-album-cover');
-            const coverImg = albumCovers[track.album] || track.coverUrl;
-            if(coverImg) {
-                coverEl.innerHTML = `<img src="${coverImg}" class="w-full h-full object-cover">`;
-            } else {
-                coverEl.innerHTML = `<i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>`;
-            }
-
-            document.getElementById('audio-player-bar').classList.remove('translate-y-full');
-            renderMusicTable();
+            const coverEl = document.getElementById('player-album-cover'); const coverImg = albumCovers[track.album];
+            if(coverImg) { coverEl.innerHTML = `<img src="${coverImg}" class="w-full h-full object-cover">`; } 
+            else { coverEl.innerHTML = `<i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>`; }
+            document.getElementById('audio-player-bar').classList.remove('translate-y-full'); renderMusicTable();
         }
 
         function togglePlayPause() {
-            if (currentTrackIndex === -1 && localTracks.length > 0) return playLocalTrack(0);
-            if (currentTrackIndex === -1) return;
+            if (currentTrackIndex === -1 && localTracks.length > 0) return playLocalTrack(0); if (currentTrackIndex === -1) return;
             const playBtn = document.getElementById('player-play-btn');
             if (audioElement.paused) { audioElement.play(); playBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`; } 
             else { audioElement.pause(); playBtn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`; }
@@ -686,59 +489,40 @@
 
         function playerNext() { if(localTracks.length > 0) playLocalTrack((currentTrackIndex + 1) % localTracks.length); }
         function playerPrevious() { if(localTracks.length > 0) playLocalTrack((currentTrackIndex - 1 + localTracks.length) % localTracks.length); }
-        function onAudioTimeUpdate() {
-            const p = document.getElementById('player-progress');
-            if (!isNaN(audioElement.duration)) {
-                p.max = Math.floor(audioElement.duration); p.value = Math.floor(audioElement.currentTime);
-                document.getElementById('player-time-current').innerText = formatTime(audioElement.currentTime);
-                document.getElementById('player-time-total').innerText = formatTime(audioElement.duration);
-            }
-        }
+        function onAudioTimeUpdate() { const p = document.getElementById('player-progress'); if (!isNaN(audioElement.duration)) { p.max = Math.floor(audioElement.duration); p.value = Math.floor(audioElement.currentTime); document.getElementById('player-time-current').innerText = formatTime(audioElement.currentTime); document.getElementById('player-time-total').innerText = formatTime(audioElement.duration); } }
         function seekAudio() { audioElement.currentTime = document.getElementById('player-progress').value; }
         function setPlayerVolume() { audioElement.volume = document.getElementById('player-volume').value / 100; }
         function formatTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
 
         /* -------------------------------------------------------------
-           🌐 ENCYCLOPÉDIE MUSICBRAINZ OPEN SOURCE
+           🌐 RECHERCHE MUSICBRAINZ
         ------------------------------------------------------------- */
         function triggerWikiSearch() {
-            const query = document.getElementById('wiki-search-input').value.trim();
-            if (!query) return alert("Veuillez entrer une recherche.");
-
-            const status = document.getElementById('wiki-status');
-            const grid = document.getElementById('wiki-grid');
-            status.innerText = `⏳ Requête encyclopédique en cours...`;
-            grid.innerHTML = "";
+            const query = document.getElementById('wiki-search-input').value.trim(); if (!query) return alert("Veuillez entrer une recherche.");
+            const status = document.getElementById('wiki-status'); const grid = document.getElementById('wiki-grid');
+            status.innerText = `⏳ Requête en cours...`; grid.innerHTML = "";
 
             fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(query)}"+OR+release:"${encodeURIComponent(query)}"&limit=30&fmt=json`)
-                .then(res => res.json())
-                .then(data => {
+                .then(res => res.json()).then(data => {
                     if (data.releases && data.releases.length > 0) {
-                        status.innerHTML = `<span class="text-green-800 font-bold">✅ Bibliothèque ouverte connectée (${data.releases.length} fiches)</span>`;
-                        
+                        status.innerHTML = `<span class="text-green-800 font-bold">✅ Résultats chargés (${data.releases.length} fiches)</span>`;
                         let wikiHtmlBuffer = "";
                         data.releases.forEach(album => {
-                            const year = album.date ? album.date.substring(0, 4) : '----';
-                            const artistName = album['artist-credit'] ? album['artist-credit'][0].name : 'Inconnu';
+                            const year = album.date ? album.date.substring(0, 4) : '----'; const artistName = album['artist-credit'] ? album['artist-credit'][0].name : 'Inconnu';
                             const coverUrl = `https://coverartarchive.org/release/${album.id}/front`;
-
                             wikiHtmlBuffer += `
                                 <div class="bg-white p-3 rounded-xl border border-stone-300 shadow-sm flex flex-col justify-between hover:shadow-md transition text-center">
                                     <div>
-                                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-900 mb-2 flex items-center justify-center relative">
-                                            <img src="${coverUrl}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&q=80';" class="w-full h-full object-cover">
-                                        </div>
+                                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-900 mb-2 flex items-center justify-center relative"><img src="${coverUrl}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&q=80';" class="w-full h-full object-cover"></div>
                                         <h4 class="font-title text-[11px] text-stone-900 font-bold line-clamp-1 leading-tight">${album.title}</h4>
                                         <p class="text-[10px] text-stone-500 font-sans truncate mt-0.5">De : ${artistName}</p>
                                         <p class="text-[10px] text-amber-900 font-serif-classic font-bold italic mt-1">${year}</p>
-                                    </div>
-                                    <div class="text-[9px] text-stone-400 mt-2 border-t border-stone-100 pt-1">${album['track-count'] || '0'} pistes</div>
+                                    </div><div class="text-[9px] text-stone-400 mt-2 border-t border-stone-100 pt-1">${album['track-count'] || '0'} pistes</div>
                                 </div>`;
                         });
                         grid.innerHTML = wikiHtmlBuffer;
-                    } else { status.innerText = "❌ Aucun résultat trouvé."; }
-                })
-                .catch(() => { status.innerText = "❌ Erreur serveur."; });
+                    } else { status.innerText = "❌ Aucun résultat."; }
+                }).catch(() => { status.innerText = "❌ Erreur serveur."; });
         }
     </script>
 </body>

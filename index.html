@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Jukebox Personnel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .font-title { font-family: 'Cinzel', serif; }
+        .font-serif-classic { font-family: 'Cormorant Garamond', serif; }
+        .font-sans-clean { font-family: 'Montserrat', sans-serif; }
+
+        body {
+            background-image: linear-gradient(rgba(15, 10, 5, 0.45), rgba(15, 10, 5, 0.45)), url('fond.jpg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding-bottom: 90px; /* Espace pour le lecteur audio en bas */
+        }
+
+        .parchment {
+            background: radial-gradient(circle, #fbf7eb 0%, #f3e9cc 100%);
+            border: 2px solid #bda06a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(139, 90, 43, 0.15);
+            position: relative;
+        }
+
+        .parchment::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 1px solid rgba(189, 160, 106, 0.5);
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: rgba(20, 15, 10, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(189, 160, 106, 0.25);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(20, 15, 10, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #bda06a; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-sans-clean text-stone-100 flex flex-col justify-between min-height-screen overflow-x-hidden">
+
+    <header class="p-6 flex justify-between items-center z-10">
+        <button onclick="retourAccueil()" class="group flex items-center gap-3 text-[#bda06a] hover:text-[#e5c185] transition duration-300">
+            <span class="border border-[#bda06a] p-2 rounded-full"><i class="fa-solid fa-music text-sm"></i></span>
+            <span class="font-title tracking-widest text-xs uppercase">Espace Musique</span>
+        </button>
+        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">Jukebox Autonome v2</span>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <!-- PAGE ACCUEIL (MENU ÉPURÉ 100% MUSIQUE) -->
+        <div id="page-home" class="w-full max-w-lg">
+            <div class="parchment p-8 sm:p-10 rounded-2xl text-stone-900">
+                <div class="text-center mb-8">
+                    <h1 class="font-title text-2xl sm:text-3xl tracking-wider text-stone-800 border-b border-[#bda06a]/40 pb-3 inline-block">Discothèque Privée</h1>
+                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Gérez vos fichiers et explorez l'histoire de la musique.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- BOUTON ACCÈS JUKEBOX LOCAL -->
+                    <button onclick="showPage('jukebox')" class="w-full bg-white/80 hover:bg-white border border-[#bda06a] text-stone-900 rounded-xl p-4 text-left flex items-center gap-4 transition shadow hover:shadow-md">
+                        <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-compact-disc"></i></div>
+                        <div>
+                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Mon Matériel</div>
+                            <div class="font-serif-classic text-xl font-bold text-stone-800">1. Lecteur Jukebox Local</div>
+                        </div>
+                    </button>
+
+                    <!-- BOUTON ACCÈS WIKIPEDIA MUSICAL -->
+                    <button onclick="showPage('wiki')" class="w-full bg-white/80 hover:bg-white border border-[#bda06a] text-stone-900 rounded-xl p-4 text-left flex items-center gap-4 transition shadow hover:shadow-md">
+                        <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-book-open-reader"></i></div>
+                        <div>
+                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Encyclopédie</div>
+                            <div class="font-serif-classic text-xl font-bold text-stone-800">2. Explorateur de Discographies</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPERTOIRE 1 : LE JUKEBOX LOCAL (SSD + INTERNE) -->
+        <div id="page-jukebox" class="hidden w-full max-w-6xl">
+            <div class="glass-panel rounded-2xl p-6 md:p-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#bda06a]/20 pb-6">
+                    <div>
+                        <span class="text-[#bda06a] uppercase tracking-widest text-xs font-title">Lecteur de Fichiers</span>
+                        <h2 class="font-title text-3xl text-white mt-1">Le Jukebox Personnel</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="bg-amber-700 hover:bg-amber-800 text-white font-title text-xs uppercase px-4 py-2.5 rounded flex items-center gap-2 cursor-pointer transition">
+                            <i class="fa-solid fa-hdd"></i> 💽 Scanner le SSD
+                            <input type="file" id="scan-ssd" webkitdirectory directory multiple class="hidden" onchange="importLocalMusic(event, '💽 SSD')">
+                        </label>
+                        <label class="bg-stone-700 hover:bg-stone-600 text-white font-title text-xs uppercase px-4 py-2.5 rounded flex items-center gap-2 cursor-pointer transition">
+                            <i class="fa-solid fa-floppy-disk"></i> 💾 Scanner Disque Interne
+                            <input type="file" id="scan-interne" webkitdirectory directory multiple class="hidden" onchange="importLocalMusic(event, '💾 Interne')">
+                        </label>
+                        <button onclick="retourAccueil()" class="border border-[#bda06a]/50 text-[#bda06a] font-title text-xs uppercase px-4 py-2.5 rounded hover:bg-[#bda06a]/10 transition">Retour</button>
+                    </div>
+                </div>
+
+                <div id="music-scan-status" class="text-xs text-stone-400 mb-4 italic">Aucun morceau chargé pour cette session. Lancez un scan ci-dessus.</div>
+
+                <div class="overflow-x-auto bg-stone-900/60 rounded-xl border border-stone-800 max-h-[50vh] overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-stone-800 text-[#bda06a] font-title text-xs uppercase tracking-wider bg-stone-950/40">
+                                <th class="p-3 pl-6">Statut</th>
+                                <th class="p-3">Titre du morceau</th>
+                                <th class="p-3">Artiste / Groupe</th>
+                                <th class="p-3">Source</th>
+                                <th class="p-3 text-right pr-6">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="music-list-body" class="font-sans-clean text-stone-300">
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Sélectionnez un répertoire de votre ordinateur pour l'écouter instantanément...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPERTOIRE 2 : L'EXPLORATEUR DE DISCOGRAPHIES (WIKIPEDIA MUSICAL) -->
+        <div id="page-wiki" class="hidden w-full max-w-6xl">
+            <div class="parchment rounded-2xl p-6 md:p-8 text-stone-900">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#bda06a]/40 pb-6">
+                    <div>
+                        <span class="text-amber-800 uppercase tracking-widest text-xs font-title">Encyclopédie Numérique</span>
+                        <h2 class="font-title text-3xl text-stone-800 mt-1">Explorateur de Discographies</h2>
+                    </div>
+                    <button onclick="retourAccueil()" class="border border-stone-400 text-stone-700 font-title text-xs uppercase px-4 py-2.5 rounded hover:bg-stone-900/5 transition">Retour</button>
+                </div>
+
+                <!-- BARRE DE RECHERCHE WIKI -->
+                <div class="max-w-xl mx-auto mb-8 bg-white/60 p-4 rounded-xl border border-[#bda06a]/50 flex gap-2">
+                    <input type="text" id="wiki-search-input" onkeypress="if(event.key === 'Enter') triggerWikiSearch()" placeholder="Tapez le nom d'un artiste (Ex: Elsa Esnoult, Johnny Hallyday...)" class="flex-grow bg-white border border-stone-300 rounded-lg px-4 py-2 text-stone-900 font-serif-classic text-lg shadow-inner">
+                    <button onclick="triggerWikiSearch()" class="bg-amber-800 hover:bg-amber-900 text-white font-title text-xs uppercase px-6 py-2 rounded-lg transition tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i> Chercher
+                    </button>
+                </div>
+
+                <div id="wiki-status" class="text-center text-stone-600 font-serif-classic italic text-lg mb-4">Entrez un artiste pour charger son histoire discographique...</div>
+
+                <!-- GRILLE DES ALBUMS TROUVÉS -->
+                <div id="wiki-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[50vh] overflow-y-auto p-2"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BARRE DE LECTURE AUDIO PHYSIQUE -->
+    <div id="audio-player-bar" class="fixed bottom-0 left-0 right-0 glass-panel border-t border-[#bda06a]/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50 transform translate-y-full transition-transform duration-300">
+        <div class="flex items-center gap-3 w-full sm:w-1/3">
+            <div class="w-12 h-12 rounded bg-[#8b5a2b]/30 flex items-center justify-center text-[#bda06a] border border-[#bda06a]/20 shrink-0">
+                <i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>
+            </div>
+            <div class="overflow-hidden">
+                <div id="player-track-title" class="font-title text-sm text-white truncate">Aucun morceau</div>
+                <div id="player-track-artist" class="text-xs text-[#bda06a] truncate">En attente de lecture</div>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-1 w-full sm:w-1/3">
+            <div class="flex items-center gap-4">
+                <button onclick="playerPrevious()" class="text-stone-400 hover:text-white transition"><i class="fa-solid fa-backward-step text-lg"></i></button>
+                <button onclick="togglePlayPause()" id="player-play-btn" class="w-10 h-10 rounded-full bg-[#bda06a] text-stone-950 flex items-center justify-center hover:scale-105 transition shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></button>
+                <button onclick="playerNext()" class="text-stone-400 hover:text-white transition"><i class="fa-solid fa-forward-step text-lg"></i></button>
+            </div>
+            <div class="flex items-center gap-2 w-full text-[10px] text-stone-400">
+                <span id="player-time-current">0:00</span>
+                <input type="range" id="player-progress" value="0" min="0" step="1" oninput="seekAudio()" class="w-full accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer">
+                <span id="player-time-total">0:00</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 w-full sm:w-1/3">
+            <span id="player-track-source" class="text-[10px] bg-stone-800 border border-stone-700 px-2 py-0.5 rounded text-stone-400 font-title uppercase">SOURCE</span>
+            <div class="flex items-center gap-1.5 text-stone-400">
+                <i class="fa-solid fa-volume-low text-xs"></i>
+                <input type="range" id="player-volume" value="80" min="0" max="100" oninput="setPlayerVolume()" class="w-20 accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer">
+            </div>
+        </div>
+    </div>
+
+    <audio id="main-audio-element" ontimeupdate="onAudioTimeUpdate()" onended="playerNext()"></audio>
+
+    <script>
+        let localTracks = []; 
+        let currentTrackIndex = -1;
+        const audioElement = document.getElementById('main-audio-element');
+
+        function showPage(pageId) {
+            document.getElementById('page-home').classList.add('hidden');
+            document.getElementById('page-jukebox').classList.add('hidden');
+            document.getElementById('page-wiki').classList.add('hidden');
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+        }
+
+        function retourAccueil() {
+            document.getElementById('wiki-search-input').value = "";
+            showPage('home');
+        }
+
+        /* -------------------------------------------------------------
+           💽 MODULE 1 : JUKEBOX LOCAL (SSD + INTERNE FUSIONNÉS)
+        ------------------------------------------------------------- */
+        function importLocalMusic(event, sourceName) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.name.endsWith('.mp3') || file.name.endsWith('.wav') || file.name.endsWith('.m4a') || file.name.endsWith('.flac')) {
+                    let cleanName = file.name.substring(0, file.name.lastIndexOf('.'));
+                    let title = cleanName;
+                    let artist = "Artiste Inconnu";
+
+                    if (cleanName.includes('-')) {
+                        let parts = cleanName.split('-');
+                        artist = parts[0].trim();
+                        title = parts[1].trim();
+                    }
+
+                    const isDuplicate = localTracks.some(t => t.fileName === file.name && t.size === file.size);
+                    if (!isDuplicate) {
+                        localTracks.push({
+                            fileName: file.name,
+                            size: file.size,
+                            title: title,
+                            artist: artist,
+                            source: sourceName,
+                            fileObject: file
+                        });
+                    }
+                }
+            }
+            document.getElementById('music-scan-status').innerText = `✅ Indexation réussie : ${localTracks.length} morceaux disponibles (Fusion SSD + Interne active).`;
+            renderMusicTable();
+        }
+
+        function renderMusicTable() {
+            const tbody = document.getElementById('music-list-body');
+            tbody.innerHTML = "";
+            if (localTracks.length === 0) return;
+
+            localTracks.forEach((track, index) => {
+                const isCurrent = (index === currentTrackIndex);
+                tbody.innerHTML += `
+                    <tr class="border-b border-stone-800/40 hover:bg-white/5 transition duration-150 ${isCurrent ? 'bg-[#bda06a]/10 text-[#bda06a]' : ''}">
+                        <td class="p-3 pl-6 text-xs font-semibold">${isCurrent ? '▶ LECTURE' : 'Prêt'}</td>
+                        <td class="p-3 font-semibold text-white">${track.title}</td>
+                        <td class="p-3 text-stone-400 font-serif-classic text-base">${track.artist}</td>
+                        <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded bg-stone-950/40 border border-stone-800 text-stone-300">${track.source}</span></td>
+                        <td class="p-3 text-right pr-6">
+                            <button onclick="playLocalTrack(${index})" class="bg-[#bda06a] text-stone-950 p-2 rounded-full w-8 h-8 flex items-center justify-center transition hover:scale-105">
+                                <i class="${isCurrent && !audioElement.paused ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5'}"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function playLocalTrack(index) {
+            if (index < 0 || index >= localTracks.length) return;
+            if (currentTrackIndex === index) { togglePlayPause(); return; }
+
+            currentTrackIndex = index;
+            const track = localTracks[currentTrackIndex];
+            audioElement.src = URL.createObjectURL(track.fileObject);
+            audioElement.play();
+
+            document.getElementById('player-track-title').innerText = track.title;
+            document.getElementById('player-track-artist').innerText = track.artist;
+            document.getElementById('player-track-source').innerText = track.source;
+            document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-pause"></i>`;
+            document.getElementById('audio-player-bar').classList.remove('translate-y-full');
+            renderMusicTable();
+        }
+
+        function togglePlayPause() {
+            if (currentTrackIndex === -1 && localTracks.length > 0) return playLocalTrack(0);
+            if (currentTrackIndex === -1) return;
+            const playBtn = document.getElementById('player-play-btn');
+            if (audioElement.paused) { audioElement.play(); playBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`; } 
+            else { audioElement.pause(); playBtn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`; }
+            renderMusicTable();
+        }
+
+        function playerNext() { if(localTracks.length > 0) playLocalTrack((currentTrackIndex + 1) % localTracks.length); }
+        function playerPrevious() { if(localTracks.length > 0) playLocalTrack((currentTrackIndex - 1 + localTracks.length) % localTracks.length); }
+        function onAudioTimeUpdate() {
+            const p = document.getElementById('player-progress');
+            if (!isNaN(audioElement.duration)) {
+                p.max = Math.floor(audioElement.duration); p.value = Math.floor(audioElement.currentTime);
+                document.getElementById('player-time-current').innerText = formatTime(audioElement.currentTime);
+                document.getElementById('player-time-total').innerText = formatTime(audioElement.duration);
+            }
+        }
+        function seekAudio() { audioElement.currentTime = document.getElementById('player-progress').value; }
+        function setPlayerVolume() { audioElement.volume = document.getElementById('player-volume').value / 100; }
+        function formatTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
+
+        /* -------------------------------------------------------------
+           🌐 MODULE 2 : LE WIKIPEDIA DE LA MUSIQUE (DISCOGRAPHIE)
+        ------------------------------------------------------------- */
+        function triggerWikiSearch() {
+            const query = document.getElementById('wiki-search-input').value.trim();
+            if (!query) return alert("Veuillez entrer le nom d'un artiste.");
+
+            const status = document.getElementById('wiki-status');
+            const grid = document.getElementById('wiki-grid');
+            
+            status.innerText = `⏳ Consultation de la base encyclopédique pour "${query}"...`;
+            grid.innerHTML = "";
+
+            // Appel de la base de données globale d'Apple (limite fixée à 100 pour les grands artistes !)
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=100`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        status.innerHTML = `<span class="text-green-800 font-bold">✅ ${data.results.length} album(s) répertorié(s) pour "${query}"</span>`;
+                        
+                        // Tri chronologique des albums (du plus ancien au plus récent)
+                        const sortedAlbums = data.results.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+
+                        sortedAlbums.forEach(album => {
+                            const year = album.releaseDate ? album.releaseDate.substring(0, 4) : '????';
+                            const hdCover = album.artworkUrl100.replace("100x100bb", "300x300bb");
+                            const genre = album.primaryGenreName || "Musique";
+
+                            grid.innerHTML += `
+                                <div class="bg-white p-3 rounded-xl border border-stone-300 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                    <div>
+                                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-100 mb-2">
+                                            <img src="${hdCover}" class="w-full h-full object-cover">
+                                        </div>
+                                        <h4 class="font-title text-[11px] text-stone-900 font-bold line-clamp-2 leading-tight">${album.collectionName}</h4>
+                                        <p class="text-[10px] text-amber-900 font-serif-classic font-bold italic mt-1">${year} — ${genre}</p>
+                                    </div>
+                                    <div class="text-[9px] text-stone-500 mt-2 border-t border-stone-100 pt-1 text-right">${album.trackCount} pistes</div>
+                                </div>`;
+                        });
+                    } else {
+                        status.innerText = "❌ Aucun artiste ou album trouvé sous ce nom dans l'encyclopédie.";
+                    }
+                })
+                .catch(() => {
+                    status.innerText = "❌ Erreur de connexion aux serveurs de l'encyclopédie.";
+                });
+        }
+    </script>
+</body>
+</html>

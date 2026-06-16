@@ -2,95 +2,101 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Jukebox Personnel WMP</title>
+    <title>Jukebox Personnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #0c0a09; color: #e7e5e4; min-height: 100vh; }
-        .glass { background: rgba(20, 15, 10, 0.85); backdrop-filter: blur(10px); border: 1px solid #bda06a; }
-        .wmp-tab-btn.active { background: #bda06a; color: black; font-weight: bold; }
+        .glass { background: rgba(20, 15, 10, 0.9); border: 1px solid #bda06a; }
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; }
     </style>
 </head>
-<body class="p-4">
-
-    <div class="max-w-6xl mx-auto glass p-6 rounded-2xl">
-        <h1 class="text-2xl font-bold text-[#bda06a] mb-4">WMP Pro v4.9 (Aspirateur d'images)</h1>
+<body class="p-6">
+    <div class="max-w-6xl mx-auto glass p-8 rounded-2xl">
+        <h1 class="text-3xl font-bold text-[#bda06a] mb-6">Ma Médiathèque</h1>
         
-        <div class="flex gap-2 mb-6">
-            <label class="bg-amber-700 p-3 rounded cursor-pointer">Scanner Disques <input type="file" webkitdirectory directory multiple class="hidden" onchange="importLocalMusic(event)"></label>
-            <button onclick="switchWmpTab('tracks')" class="wmp-tab-btn active px-4 py-2 rounded">Morceaux</button>
-            <button onclick="switchWmpTab('albums')" class="wmp-tab-btn px-4 py-2 rounded">Albums</button>
+        <div class="flex gap-4 mb-8">
+            <label class="bg-amber-800 hover:bg-amber-700 px-6 py-2 rounded cursor-pointer font-bold transition">
+                <i class="fa fa-folder-open"></i> Scanner Dossier
+                <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
+            </label>
+            <button onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</button>
+            <button onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</button>
         </div>
 
-        <div id="status" class="text-amber-500 mb-4 italic">Prêt. Scannez un dossier...</div>
+        <div id="status" class="text-amber-500 mb-4 italic">En attente de scan...</div>
 
-        <div id="wmp-view-tracks" class="overflow-y-auto max-h-[60vh]">
+        <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
             <table class="w-full text-left">
                 <tbody id="music-list-body"></tbody>
             </table>
         </div>
-        <div id="wmp-view-albums" class="hidden grid grid-cols-4 gap-4" id="albums-grid"></div>
+
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-6" id="albums-grid"></div>
     </div>
 
-    <audio id="audio" onended="playerNext()"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] glass"></audio>
 
     <script>
-        let localTracks = [];
-        let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
+        let tracks = [];
         const audio = document.getElementById('audio');
 
-        async function importLocalMusic(event) {
-            const files = event.target.files;
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].name.match(/\.(mp3|wav|m4a)$/)) {
-                    localTracks.push({ file: files[i], title: files[i].name, artist: "Inconnu", album: "Inconnu" });
-                }
+        async function importMusic(e) {
+            tracks = [];
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/));
+            document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
+            
+            for (let f of files) {
+                tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
             }
             render();
-            processFiles(0);
+            processTags(0);
         }
 
-        async function processFiles(i) {
-            if (i >= localTracks.length) return;
-            const track = localTracks[i];
-            
-            window.jsmediatags.read(track.file, {
-                onSuccess: (tag) => {
-                    track.title = tag.tags.title || track.title;
-                    track.artist = tag.tags.artist || "Inconnu";
-                    track.album = tag.tags.album || "Album Inconnu";
-                    
-                    if (tag.tags.picture) {
-                        const base64 = "data:" + tag.tags.picture.format + ";base64," + btoa(String.fromCharCode(...tag.tags.picture.data));
-                        albumCovers[track.album] = base64;
-                    }
+        async function processTags(i) {
+            if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
+            window.jsmediatags.read(tracks[i].file, {
+                onSuccess: (t) => {
+                    tracks[i].title = t.tags.title || tracks[i].title;
+                    tracks[i].artist = t.tags.artist || "Inconnu";
+                    tracks[i].album = t.tags.album || "Album Inconnu";
                     render();
-                    processFiles(i + 1);
+                    processTags(i + 1);
                 },
-                onError: () => processFiles(i + 1)
+                onError: () => processTags(i + 1)
             });
         }
 
         function render() {
-            const body = document.getElementById('music-list-body');
-            body.innerHTML = localTracks.map((t, i) => `
-                <tr class="border-b border-stone-800">
-                    <td class="p-2">${t.title}</td>
-                    <td class="p-2">${t.artist}</td>
-                    <td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
+            // Vue Liste
+            document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
+                <tr class="border-b border-stone-800 hover:bg-stone-800">
+                    <td class="p-3">${t.title}</td>
+                    <td class="p-3 text-stone-400">${t.artist}</td>
+                    <td class="p-3"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
                 </tr>`).join('');
+            
+            // Vue Albums
+            const albums = [...new Set(tracks.map(t => t.album))];
+            document.getElementById('view-albums').innerHTML = albums.map(a => `
+                <div class="glass p-4 rounded text-center">
+                    <i class="fa fa-compact-disc text-4xl text-amber-900 mb-2"></i>
+                    <p class="text-sm font-bold truncate">${a}</p>
+                </div>`).join('');
         }
 
         function play(i) {
-            audio.src = URL.createObjectURL(localTracks[i].file);
+            audio.src = URL.createObjectURL(tracks[i].file);
             audio.play();
-            document.getElementById('status').innerText = "Lecture : " + localTracks[i].title;
         }
 
-        function switchWmpTab(tab) {
-            document.getElementById('wmp-view-tracks').classList.toggle('hidden', tab !== 'tracks');
-            document.getElementById('wmp-view-albums').classList.toggle('hidden', tab !== 'albums');
+        function showView(v) {
+            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
     </script>
 </body>

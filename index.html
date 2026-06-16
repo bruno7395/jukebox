@@ -1,42 +1,135 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- ... (Toutes les références Tailwind/Scripts habituelles) ... -->
+    <meta charset="UTF-8">
+    <title>Discothèque Privée</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #0c0a09; color: #e7e5e4; }
-        /* La fameuse "Card" de ta photo */
-        .glass-card { background: #1a1612; border: 1px solid #bda06a; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        body { background: #0c0a09; color: #e7e5e4; min-height: 100vh; font-family: sans-serif; }
+        .parchment { background: #1a1612; border: 1px solid #bda06a; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .tab-btn { padding: 12px 24px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; }
     </style>
 </head>
-<body>
+<body class="p-6">
 
-    <!-- 1. ÉCRAN D'ACCUEIL (Celui que tu veux retrouver) -->
-    <div id="home-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="glass-card p-10 rounded-xl text-center max-w-sm w-full">
-            <h1 class="text-3xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
-            <div class="space-y-4">
-                <button onclick="showScreen('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition">1. Lecteur Jukebox Local</button>
-                <button onclick="showScreen('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Explorateur de Discographies</button>
-            </div>
+    <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
+        <h1 class="text-3xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
+        <p class="text-stone-400 mb-6 text-sm">Gérez vos fichiers et explorez l'histoire de la musique.</p>
+        <div class="space-y-4">
+            <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition">1. Lecteur Jukebox Local</button>
+            <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Explorateur de Discographies</button>
         </div>
     </div>
 
-    <!-- 2. ÉCRAN JUKEBOX (Le code fonctionnel qu'on a peaufiné) -->
-    <div id="jukebox-screen" class="hidden p-6">
-        <!-- ... Ton interface Jukebox avec les onglets ... -->
+    <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl text-[#bda06a] font-serif">Ma Médiathèque Personnelle</h2>
+            <button onclick="showPage('home')" class="text-xs underline text-stone-400">Retour</button>
+        </div>
+        
+        <label class="bg-amber-800 px-6 py-2 rounded cursor-pointer font-bold hover:bg-amber-700 transition mb-6 inline-block">
+            <i class="fa fa-folder-open mr-2"></i> Scanner un dossier
+            <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
+        </label>
+        
+        <div class="flex gap-4 mb-6 border-b border-stone-800">
+            <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
+            <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
+        </div>
+
+        <div id="status" class="text-amber-500 mb-4 text-xs italic">Prêt.</div>
+        <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
+            <table class="w-full text-left text-sm">
+                <tbody id="music-list-body"></tbody>
+            </table>
+        </div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
     </div>
 
-    <!-- 3. ÉCRAN WIKI (L'explorateur) -->
-    <div id="wiki-screen" class="hidden p-6">
-        <!-- ... Ton explorateur MusicBrainz ... -->
+    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl text-[#bda06a] font-serif">Explorateur MusicBrainz</h2>
+            <button onclick="showPage('home')" class="text-xs underline text-stone-400">Retour</button>
+        </div>
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="wiki-query" class="flex-grow bg-black p-2 border border-stone-600 rounded text-white" placeholder="Rechercher artiste ou album...">
+            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Interroger</button>
+        </div>
+        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
+
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
 
     <script>
-        function showScreen(id) {
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('jukebox-screen').classList.add('hidden');
-            document.getElementById('wiki-screen').classList.add('hidden');
-            document.getElementById(id + '-screen').classList.remove('hidden');
+        let tracks = [];
+        let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
+        const audio = document.getElementById('audio');
+
+        function showPage(p) {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('jukebox-page').classList.add('hidden');
+            document.getElementById('wiki-page').classList.add('hidden');
+            document.getElementById(p + '-page').classList.remove('hidden');
+        }
+
+        function importMusic(e) {
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg|aac|wma)$/i));
+            document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
+            files.forEach(f => {
+                if (!tracks.find(t => t.file.name === f.name)) {
+                    tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
+                }
+            });
+            render(); processTags(0);
+        }
+
+        function processTags(i) {
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Total : ${tracks.length} titres.`; return; }
+            window.jsmediatags.read(tracks[i].file, {
+                onSuccess: (t) => {
+                    tracks[i].artist = t.tags.artist || "Inconnu";
+                    tracks[i].album = t.tags.album || "Album Inconnu";
+                    if (t.tags.picture) {
+                        const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                        albumCovers[tracks[i].album] = b64;
+                        localStorage.setItem('covers', JSON.stringify(albumCovers));
+                    }
+                    render(); processTags(i + 1);
+                },
+                onError: () => processTags(i + 1)
+            });
+        }
+
+        function render() {
+            document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
+                <tr class="border-b border-stone-800 hover:bg-stone-900"><td class="p-2">${t.title}</td><td class="p-2 text-stone-400">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+            
+            const albums = [...new Set(tracks.map(t => t.album))];
+            document.getElementById('view-albums').innerHTML = albums.map(a => `
+                <div class="parchment p-3 rounded text-center">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2">` : `<div class="w-full aspect-square bg-stone-900 flex items-center justify-center rounded mb-2"><i class="fa fa-compact-disc text-3xl text-stone-700"></i></div>`}
+                    <p class="text-[10px] font-bold truncate">${a}</p>
+                </div>`).join('');
+        }
+
+        function play(i) { audio.src = URL.createObjectURL(tracks[i].file); audio.play(); }
+
+        function showView(v) {
+            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
+        }
+
+        async function searchWiki() {
+            const q = document.getElementById('wiki-query').value;
+            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
+            const data = await res.json();
+            document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
+                <div class="parchment p-2 rounded text-center text-[10px]">${r.title}</div>`).join('');
         }
     </script>
 </body>

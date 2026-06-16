@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Jukebox WMP Pro</title>
+    <title>Jukebox Personnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,7 @@
 </head>
 <body class="p-6">
     <div class="max-w-6xl mx-auto glass p-8 rounded-2xl">
-        <h1 class="text-3xl font-bold text-[#bda06a] mb-6">Ma Médiathèque</h1>
+        <h1 class="text-3xl font-bold text-[#bda06a] mb-6">Ma Médiathèque (V5.1)</h1>
         <div class="flex gap-4 mb-8">
             <label class="bg-amber-800 px-6 py-2 rounded cursor-pointer font-bold hover:bg-amber-700">
                 <i class="fa fa-folder-open"></i> Scanner Dossier
@@ -40,7 +40,8 @@
 
     <script>
         let tracks = [];
-        let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
+        // Utilisation d'une nouvelle clé de stockage pour repartir à zéro
+        let albumCovers = JSON.parse(localStorage.getItem('jukebox_v5_covers')) || {};
         const audio = document.getElementById('audio');
 
         function importMusic(e) {
@@ -48,25 +49,28 @@
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/));
             document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
             files.forEach(f => {
-                tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
+                tracks.push({ file: f, title: f.name, artist: "Artiste Inconnu", album: "Album Inconnu" });
             });
             render();
             processTags(0);
         }
 
         function processTags(i) {
-            if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
+            if (i >= tracks.length) { 
+                document.getElementById('status').innerText = "Scan terminé (" + tracks.length + " titres trouvés)."; 
+                return; 
+            }
             
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
-                    // On ne touche PAS au titre pour garder ton nom de fichier original
-                    tracks[i].artist = t.tags.artist || "Inconnu";
+                    // ON NE TOUCHE PLUS AU TITRE (tracks[i].title reste le nom de fichier)
+                    tracks[i].artist = t.tags.artist || "Artiste Inconnu";
                     tracks[i].album = t.tags.album || "Album Inconnu";
                     
                     if (t.tags.picture) {
                         const base64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         albumCovers[tracks[i].album] = base64;
-                        localStorage.setItem('covers', JSON.stringify(albumCovers));
+                        localStorage.setItem('jukebox_v5_covers', JSON.stringify(albumCovers));
                     }
                     render();
                     processTags(i + 1);
@@ -76,7 +80,6 @@
         }
 
         function render() {
-            // Vue Morceaux
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
                 <tr class="border-b border-stone-800 hover:bg-stone-800">
                     <td class="p-3">${t.title}</td>
@@ -84,7 +87,6 @@
                     <td class="p-3"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
                 </tr>`).join('');
             
-            // Vue Albums
             const albums = [...new Set(tracks.map(t => t.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
                 <div class="glass p-3 rounded text-center">
@@ -96,7 +98,6 @@
         function play(i) {
             audio.src = URL.createObjectURL(tracks[i].file);
             audio.play();
-            document.getElementById('status').innerText = "Lecture : " + tracks[i].title;
         }
 
         function showView(v) {

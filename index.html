@@ -1,4 +1,58 @@
-// 1. Mise à jour de la fonction qui scanne les tags et récupère l'image
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Jukebox Personnel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #0c0a09; color: #e7e5e4; min-height: 100vh; }
+        .glass { background: rgba(20, 15, 10, 0.9); border: 1px solid #bda06a; }
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; font-weight: bold; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-6xl mx-auto glass p-8 rounded-2xl">
+        <h1 class="text-3xl font-bold text-[#bda06a] mb-6">Ma Médiathèque</h1>
+        
+        <div class="flex gap-4 mb-8">
+            <label class="bg-amber-800 hover:bg-amber-700 px-6 py-2 rounded cursor-pointer font-bold transition">
+                <i class="fa fa-folder-open"></i> Scanner Dossier
+                <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
+            </label>
+            <button onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</button>
+            <button onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</button>
+        </div>
+
+        <div id="status" class="text-amber-500 mb-4 italic">En attente de scan...</div>
+
+        <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
+            <table class="w-full text-left">
+                <tbody id="music-list-body"></tbody>
+            </table>
+        </div>
+
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    </div>
+
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] glass p-2"></audio>
+
+    <script>
+        let tracks = [];
+        let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
+        const audio = document.getElementById('audio');
+
+        async function importMusic(e) {
+            tracks = [];
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/));
+            document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
+            for (let f of files) { tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" }); }
+            render();
+            processTags(0);
+        }
+
         async function processTags(i) {
             if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
             window.jsmediatags.read(tracks[i].file, {
@@ -6,8 +60,6 @@
                     tracks[i].title = t.tags.title || tracks[i].title;
                     tracks[i].artist = t.tags.artist || "Inconnu";
                     tracks[i].album = t.tags.album || "Album Inconnu";
-                    
-                    // Si on trouve une pochette dans le fichier, on la mémorise
                     if (t.tags.picture) {
                         const base64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         albumCovers[tracks[i].album] = base64;
@@ -20,7 +72,6 @@
             });
         }
 
-        // 2. Mise à jour du rendu pour afficher l'image mémorisée
         function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
                 <tr class="border-b border-stone-800 hover:bg-stone-800">
@@ -33,6 +84,21 @@
             document.getElementById('view-albums').innerHTML = albums.map(a => `
                 <div class="glass p-4 rounded text-center">
                     ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-24 h-24 mx-auto mb-2 object-cover rounded">` : `<i class="fa fa-compact-disc text-4xl text-amber-900 mb-2"></i>`}
-                    <p class="text-sm font-bold truncate">${a}</p>
+                    <p class="text-sm font-bold truncate mt-2">${a}</p>
                 </div>`).join('');
         }
+
+        function play(i) {
+            audio.src = URL.createObjectURL(tracks[i].file);
+            audio.play();
+        }
+
+        function showView(v) {
+            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
+        }
+    </script>
+</body>
+</html>

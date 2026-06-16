@@ -2,102 +2,94 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Jukebox Personnel</title>
+    <title>Jukebox WMP Pro 6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #0c0a09; color: #e7e5e4; min-height: 100vh; }
-        .glass { background: rgba(20, 15, 10, 0.9); border: 1px solid #bda06a; }
-        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; }
+        .glass { background: rgba(20, 15, 10, 0.95); border: 1px solid #bda06a; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .tab-btn { padding: 12px 24px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; font-family: serif; text-transform: uppercase; letter-spacing: 1px; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; font-weight: bold; }
     </style>
 </head>
-<body class="p-4 md:p-6">
-    <div class="max-w-6xl mx-auto glass p-6 rounded-2xl">
-        <h1 class="text-2xl font-bold text-[#bda06a] mb-4">Médiathèque (V 5.3)</h1>
-        
-        <div class="flex gap-4 mb-6">
-            <label class="bg-amber-800 px-4 py-2 rounded cursor-pointer text-sm font-bold hover:bg-amber-700">
-                <i class="fa fa-folder-open"></i> Scanner Dossier
+<body class="p-6">
+    <div class="max-w-6xl mx-auto glass p-8 rounded-2xl">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-[#bda06a]">Ma Médiathèque Pro</h1>
+            <label class="bg-amber-800 px-6 py-2 rounded cursor-pointer font-bold hover:bg-amber-700 transition">
+                <i class="fa fa-folder-open mr-2"></i> Scanner Dossier
                 <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
             </label>
-            <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
-            <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
+        </div>
+        
+        <div class="flex gap-4 mb-8 border-b border-stone-800">
+            <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks"><i class="fa fa-list mr-2"></i>Morceaux</div>
+            <div onclick="showView('albums')" class="tab-btn" id="btn-albums"><i class="fa fa-compact-disc mr-2"></i>Albums</div>
         </div>
 
-        <div id="status" class="text-amber-500 mb-4 text-sm italic">Cliquez sur Scanner pour commencer.</div>
+        <div id="status" class="text-amber-500 mb-4 italic">Prêt.</div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
-            <table class="w-full text-sm text-left">
-                <tbody id="music-list-body"></tbody>
+            <table class="w-full text-left">
+                <tbody id="music-list-body" class="text-sm"></tbody>
             </table>
         </div>
 
-        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
     </div>
 
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] glass p-2"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] glass p-3 rounded-lg"></audio>
 
     <script>
         let tracks = [];
+        let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
         const audio = document.getElementById('audio');
 
         function importMusic(e) {
             tracks = [];
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
-            document.getElementById('status').innerText = `Chargement de ${files.length} titres...`;
-            
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg|aac|wma)$/i));
+            document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
             files.forEach(f => {
-                tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu", cover: null });
+                tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
             });
-            
-            // On affiche d'abord la liste brute
-            renderTracks();
-            // Puis on lit les tags en arrière-plan
+            render();
             processTags(0);
         }
 
         function processTags(i) {
-            if (i >= tracks.length) { 
-                document.getElementById('status').innerText = `Scan terminé : ${tracks.length} titres trouvés.`;
-                renderAlbums();
-                return; 
-            }
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Scan terminé : ${tracks.length} titres.`; return; }
             
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
                     tracks[i].album = t.tags.album || "Album Inconnu";
                     if (t.tags.picture) {
-                        const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
-                        tracks[i].cover = b64;
+                        const base64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                        albumCovers[tracks[i].album] = base64;
+                        localStorage.setItem('covers', JSON.stringify(albumCovers));
                     }
+                    render();
                     processTags(i + 1);
                 },
                 onError: () => processTags(i + 1)
             });
         }
 
-        function renderTracks() {
+        function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
-                <tr class="border-b border-stone-800 hover:bg-stone-800">
-                    <td class="p-2 truncate">${t.title}</td>
-                    <td class="p-2 text-stone-400 text-xs">${t.artist}</td>
-                    <td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
+                <tr class="border-b border-stone-800 hover:bg-stone-900 transition">
+                    <td class="p-3">${t.title}</td>
+                    <td class="p-3 text-stone-400">${t.artist}</td>
+                    <td class="p-3"><button onclick="play(${i})" class="text-[#bda06a] hover:text-white"><i class="fa fa-play"></i></button></td>
                 </tr>`).join('');
-        }
-
-        function renderAlbums() {
+            
             const albums = [...new Set(tracks.map(t => t.album))];
-            document.getElementById('view-albums').innerHTML = albums.map(a => {
-                const cover = tracks.find(t => t.album === a && t.cover)?.cover;
-                return `
-                <div class="glass p-2 rounded text-center">
-                    ${cover ? `<img src="${cover}" class="w-20 h-20 mx-auto mb-2 object-cover rounded">` : `<div class="w-20 h-20 mx-auto mb-2 bg-stone-900 flex items-center justify-center rounded"><i class="fa fa-compact-disc text-2xl text-stone-700"></i></div>`}
-                    <p class="text-[10px] font-bold truncate">${a}</p>
-                </div>`;
-            }).join('');
+            document.getElementById('view-albums').innerHTML = albums.map(a => `
+                <div class="glass p-4 rounded text-center hover:border-[#e5c185] transition">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 border border-stone-700">` : `<div class="w-full aspect-square bg-stone-900 flex items-center justify-center rounded mb-2"><i class="fa fa-compact-disc text-4xl text-stone-700"></i></div>`}
+                    <p class="text-xs font-bold truncate">${a}</p>
+                </div>`).join('');
         }
 
         function play(i) {
@@ -111,7 +103,6 @@
             document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
             document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
             document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
-            if(v === 'albums') renderAlbums();
         }
     </script>
 </body>

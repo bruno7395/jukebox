@@ -7,41 +7,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Proposition 1 : Le Cabinet Vintage */
         body { 
-            background: url('bibliotheque.png') no-repeat center center fixed;
+            background: url('bibliotheque.png') no-repeat center center fixed; 
             background-size: cover; 
             min-height: 100vh; 
             font-family: 'Georgia', serif; 
-            color: #4a3728; /* Couleur texte style ancien */
+            color: #4a3728;
         }
-        /* Le cadre "Parchemin" central */
+        /* La carte "Parchemin" avec un effet de cadre doré */
         .parchment { 
             background: #fdf6e3; 
-            border: 15px double #bda06a; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 10px double #bda06a; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.7);
             border-radius: 5px;
         }
+        /* Boutons style cabinet */
         .btn-cabinet { 
-            background: #e6d3a3; 
-            border: 1px solid #bda06a; 
-            color: #4a3728; 
-            font-weight: bold; 
-            padding: 15px; 
-            width: 100%; 
-            border-radius: 4px;
+            background: #e6d3a3; border: 1px solid #8b5a2b; color: #4a3728; 
+            font-weight: bold; padding: 15px; width: 100%; border-radius: 4px;
             transition: all 0.3s;
         }
-        .btn-cabinet:hover { background: #bda06a; color: white; }
+        .btn-cabinet:hover { background: #8b5a2b; color: white; }
         
+        /* Onglets style vintage */
         .tab-btn { padding: 10px 20px; color: #8b5a2b; border-bottom: 2px solid transparent; cursor:pointer; font-weight: bold; }
         .tab-btn.active { border-bottom: 2px solid #8b5a2b; color: #4a3728; }
+        
+        /* Effet "Gold Frame" sur les albums */
+        .gold-frame {
+            border: 3px solid #bda06a;
+            box-shadow: 0 0 10px rgba(189, 160, 106, 0.5);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
 
-    <!-- PAGE ACCUEIL -->
     <div id="home-page" class="parchment p-12 rounded-lg text-center max-w-lg w-full">
-        <h1 class="text-4xl font-serif mb-2 border-b border-[#bda06a] pb-2">Mon Cabinet Personnel</h1>
+        <h1 class="text-4xl font-serif mb-2 border-b border-[#8b5a2b] pb-2">Mon Cabinet</h1>
         <p class="mb-8 italic text-sm">Gérez vos fichiers et explorez l'histoire de la musique.</p>
         <div class="space-y-4">
             <button onclick="showPage('jukebox')" class="btn-cabinet">1. Lecteur Jukebox Local</button>
@@ -49,41 +52,35 @@
         </div>
     </div>
 
-    <!-- PAGE JUKEBOX (La logique fonctionnelle) -->
     <div id="jukebox-page" class="hidden parchment p-8 w-full max-w-4xl">
-        <div class="flex justify-between items-center mb-6 border-b border-[#bda06a] pb-2">
+        <div class="flex justify-between items-center mb-6 border-b border-[#8b5a2b] pb-2">
             <h2 class="text-xl font-serif">Ma Médiathèque</h2>
-            <button onclick="showPage('home')" class="text-xs underline">Retour au cabinet</button>
+            <button onclick="showPage('home')" class="text-xs underline text-[#8b5a2b]">Retour</button>
         </div>
-        
-        <label class="bg-[#bda06a] text-white px-4 py-2 rounded cursor-pointer font-bold hover:bg-[#8b5a2b] transition mb-4 inline-block">
+        <label class="bg-[#8b5a2b] text-white px-4 py-2 rounded cursor-pointer font-bold hover:bg-[#6e4622] transition mb-4 inline-block">
             <i class="fa fa-folder-open mr-2"></i> Scanner dossiers
             <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
         </label>
-        
         <div class="flex gap-4 mb-6">
             <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
             <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
-
         <div id="status" class="mb-4 text-xs italic">En attente...</div>
         <div id="view-tracks" class="overflow-y-auto max-h-[40vh]"><table class="w-full text-left text-sm"><tbody id="music-list-body"></tbody></table></div>
         <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
-    <!-- PAGE WIKI -->
     <div id="wiki-page" class="hidden parchment p-8 w-full max-w-lg">
         <h2 class="text-xl font-serif mb-4">Explorateur MusicBrainz</h2>
         <div class="flex gap-2 mb-4">
-            <input type="text" id="wiki-query" class="flex-grow bg-[#fdf6e3] p-2 border border-[#bda06a] rounded" placeholder="Artiste...">
-            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-white font-bold">Chercher</button>
+            <input type="text" id="wiki-query" class="flex-grow bg-[#fdf6e3] p-2 border border-[#8b5a2b] rounded" placeholder="Artiste...">
+            <button onclick="searchWiki()" class="bg-[#8b5a2b] text-white px-4 py-2 rounded font-bold">Chercher</button>
         </div>
-        <button onclick="showPage('home')" class="text-xs underline">Retour au cabinet</button>
+        <button onclick="showPage('home')" class="text-xs underline text-[#8b5a2b]">Retour</button>
         <div id="wiki-results" class="grid grid-cols-2 gap-2 mt-4 text-[10px]"></div>
     </div>
 
-    <!-- AUDIO BAR -->
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%]"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2"></audio>
 
     <script>
         let tracks = [];
@@ -108,7 +105,7 @@
         }
 
         function processTags(i) {
-            if (i >= tracks.length) { document.getElementById('status').innerText = `Total : ${tracks.length} titres.`; return; }
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Scan terminé : ${tracks.length} titres.`; return; }
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
@@ -126,11 +123,11 @@
 
         function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
-                <tr class="border-b border-[#bda06a]/20"><td class="p-2">${t.title}</td><td class="p-2">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+                <tr class="border-b border-[#8b5a2b]/20"><td class="p-2">${t.title}</td><td class="p-2">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#8b5a2b]"><i class="fa fa-play"></i></button></td></tr>`).join('');
             const albums = [...new Set(tracks.map(t => t.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
-                <div class="border border-[#bda06a] p-2 rounded text-center bg-[#fdf6e3]">
-                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2">` : `<div class="w-full aspect-square bg-[#e6d3a3] flex items-center justify-center rounded mb-2"><i class="fa fa-compact-disc text-2xl text-[#8b5a2b]"></i></div>`}
+                <div class="border border-[#8b5a2b] p-2 rounded text-center bg-[#fdf6e3]">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 gold-frame">` : `<div class="w-full aspect-square bg-[#e6d3a3] flex items-center justify-center rounded mb-2 gold-frame"><i class="fa fa-compact-disc text-2xl text-[#8b5a2b]"></i></div>`}
                     <p class="text-[10px] font-bold truncate">${a}</p>
                 </div>`).join('');
         }
@@ -149,7 +146,7 @@
             const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=8&fmt=json`);
             const data = await res.json();
             document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="bg-[#fdf6e3] p-2 rounded border border-[#bda06a] text-center">${r.title}</div>`).join('');
+                <div class="bg-[#fdf6e3] p-2 rounded border border-[#8b5a2b] text-center">${r.title}</div>`).join('');
         }
     </script>
 </body>

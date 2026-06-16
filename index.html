@@ -2,96 +2,76 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée</title>
+    <title>Jukebox WMP Pro 6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #0c0a09; color: #e7e5e4; min-height: 100vh; }
-        .parchment { background: #1a1612; border: 1px solid #bda06a; }
-        .tab-btn { padding: 12px 24px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; }
+        .glass { background: rgba(20, 15, 10, 0.95); border: 1px solid #bda06a; }
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; font-weight: bold; }
     </style>
 </head>
-<body class="p-4">
-
-    <!-- PAGE ACCUEIL -->
-    <div id="page-home" class="max-w-xl mx-auto mt-20 parchment p-8 rounded-xl text-center">
-        <h1 class="text-3xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
-        <div class="space-y-4">
-            <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition">1. Lecteur Jukebox Local</button>
-            <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Explorateur de Discographies</button>
-        </div>
-    </div>
-
-    <!-- PAGE JUKEBOX (La version PRO que tu aimes) -->
-    <div id="page-jukebox" class="hidden max-w-6xl mx-auto parchment p-6 rounded-xl mt-4">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl text-[#bda06a]">Ma Médiathèque Personnelle</h2>
-            <button onclick="showPage('home')" class="text-sm underline">Retour</button>
-        </div>
-        <label class="bg-amber-800 px-4 py-2 rounded cursor-pointer hover:bg-amber-700">
-            <i class="fa fa-hdd mr-2"></i> Scanner le SSD
-            <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
-        </label>
-        
-        <div class="flex gap-4 my-6 border-b border-stone-800">
+<body class="p-6">
+    <div class="max-w-6xl mx-auto glass p-8 rounded-2xl">
+        <h1 class="text-3xl font-bold text-[#bda06a] mb-6">Ma Médiathèque Pro</h1>
+        <div class="flex gap-4 mb-8">
+            <label class="bg-amber-800 px-6 py-2 rounded cursor-pointer font-bold hover:bg-amber-700 transition">
+                <i class="fa fa-folder-open mr-2"></i> Scanner un dossier
+                <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
+            </label>
             <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
             <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
-        <div id="status" class="text-amber-500 mb-4 text-xs italic">Prêt.</div>
+
+        <div id="status" class="text-amber-500 mb-4 italic">Prêt. Tu peux scanner plusieurs dossiers à la suite.</div>
+
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
             <table class="w-full text-left">
                 <tbody id="music-list-body"></tbody>
             </table>
         </div>
-        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
     </div>
 
-    <!-- PAGE ENCYCLOPÉDIE -->
-    <div id="page-wiki" class="hidden max-w-4xl mx-auto parchment p-6 rounded-xl mt-4">
-        <h2 class="text-xl text-[#bda06a] mb-4">Explorateur MusicBrainz</h2>
-        <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" class="flex-grow bg-black p-2 border border-stone-600 rounded" placeholder="Rechercher artiste...">
-            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Interroger</button>
-            <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
-        </div>
-        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-    </div>
-
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] glass p-3 rounded-lg"></audio>
 
     <script>
         let tracks = [];
         let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
         const audio = document.getElementById('audio');
 
-        function showPage(p) {
-            document.getElementById('page-home').classList.add('hidden');
-            document.getElementById('page-jukebox').classList.add('hidden');
-            document.getElementById('page-wiki').classList.add('hidden');
-            document.getElementById('page-' + p).classList.remove('hidden');
-        }
-
         function importMusic(e) {
-            tracks = [];
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
-            document.getElementById('status').innerText = `Chargement de ${files.length} fichiers...`;
-            files.forEach(f => tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu", cover: null }));
-            render(); processTags(0);
+            // CHANGEMENT : On ne vide plus la liste (on n'écrit pas "tracks = []")
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg|aac|wma)$/i));
+            document.getElementById('status').innerText = `Ajout de ${files.length} fichiers...`;
+            
+            files.forEach(f => {
+                // On vérifie les doublons par nom de fichier pour éviter les erreurs
+                if (!tracks.find(t => t.file.name === f.name)) {
+                    tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
+                }
+            });
+            render();
+            processTags(0);
         }
 
+        // ... (Reste du code identique : processTags, render, play, showView) ...
         function processTags(i) {
-            if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Total en bibliothèque : ${tracks.length} titres.`; return; }
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
                     tracks[i].album = t.tags.album || "Album Inconnu";
                     if (t.tags.picture) {
-                        const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
-                        tracks[i].cover = b64; albumCovers[tracks[i].album] = b64;
+                        const base64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                        albumCovers[tracks[i].album] = base64;
+                        localStorage.setItem('covers', JSON.stringify(albumCovers));
                     }
-                    render(); processTags(i + 1);
+                    render();
+                    processTags(i + 1);
                 },
                 onError: () => processTags(i + 1)
             });
@@ -99,29 +79,31 @@
 
         function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
-                <tr class="border-b border-stone-800"><td class="p-2">${t.title}</td><td class="p-2 text-stone-400">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+                <tr class="border-b border-stone-800 hover:bg-stone-900 transition">
+                    <td class="p-3">${t.title}</td>
+                    <td class="p-3 text-stone-400">${t.artist}</td>
+                    <td class="p-3"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
+                </tr>`).join('');
             
             const albums = [...new Set(tracks.map(t => t.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
-                <div class="p-2 border border-stone-800 rounded text-center">
-                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-20 h-20 mx-auto object-cover rounded">` : `<i class="fa fa-compact-disc text-3xl text-stone-700"></i>`}
-                    <p class="text-[10px] truncate mt-1">${a}</p>
+                <div class="glass p-4 rounded text-center hover:border-[#e5c185] transition">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 border border-stone-700">` : `<div class="w-full aspect-square bg-stone-900 flex items-center justify-center rounded mb-2"><i class="fa fa-compact-disc text-4xl text-stone-700"></i></div>`}
+                    <p class="text-xs font-bold truncate">${a}</p>
                 </div>`).join('');
         }
 
-        function play(i) { audio.src = URL.createObjectURL(tracks[i].file); audio.play(); }
+        function play(i) {
+            audio.src = URL.createObjectURL(tracks[i].file);
+            audio.play();
+            document.getElementById('status').innerText = "Lecture : " + tracks[i].title;
+        }
 
         function showView(v) {
             document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
             document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
-        }
-
-        async function searchWiki() {
-            const q = document.getElementById('wiki-query').value;
-            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=10&fmt=json`);
-            const data = await res.json();
-            document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="p-2 border rounded text-center text-xs">${r.title}</div>`).join('');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
     </script>
 </body>

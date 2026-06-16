@@ -7,62 +7,83 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Couleurs corrigées : Plus de noir, place au bois et au parchemin */
-        body { background: #3d352a; color: #f4e4bc; min-height: 100vh; font-family: 'Georgia', serif; }
-        .parchment { background: #2e2a24; border: 2px solid #bda06a; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
-        .tab-btn { padding: 12px 24px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; }
-        .tab-btn.active { border-bottom: 2px solid #bda06a; color: #f4e4bc; }
-        input, table, button { color: #f4e4bc; }
+        body { 
+            background: url('fond.jpg.png') no-repeat center center fixed; 
+            background-size: cover; 
+            min-height: 100vh; 
+            font-family: 'Georgia', serif; 
+            color: #4a3728; /* Couleur texte style ancien */
+        }
+        /* Le cadre "Parchemin" central */
+        .parchment { 
+            background: #fdf6e3; 
+            border: 15px double #bda06a; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border-radius: 5px;
+        }
+        .btn-cabinet { 
+            background: #e6d3a3; 
+            border: 1px solid #bda06a; 
+            color: #4a3728; 
+            font-weight: bold; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .btn-cabinet:hover { background: #bda06a; color: white; }
+        
+        .tab-btn { padding: 10px 20px; color: #8b5a2b; border-bottom: 2px solid transparent; cursor:pointer; font-weight: bold; }
+        .tab-btn.active { border-bottom: 2px solid #8b5a2b; color: #4a3728; }
     </style>
 </head>
-<body class="p-6">
+<body class="flex items-center justify-center p-4">
 
     <!-- PAGE ACCUEIL -->
-    <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
-        <h1 class="text-4xl text-[#bda06a] mb-2">Discothèque</h1>
-        <h2 class="text-xl text-[#bda06a] mb-8 italic">Privée</h2>
+    <div id="home-page" class="parchment p-12 rounded-lg text-center max-w-lg w-full">
+        <h1 class="text-4xl font-serif mb-2 border-b border-[#bda06a] pb-2">Mon Cabinet Personnel</h1>
+        <p class="mb-8 italic text-sm">Gérez vos fichiers et explorez l'histoire de la musique.</p>
         <div class="space-y-4">
-            <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-[#e5c185] transition shadow-lg">1. Entrer dans le Cabinet</button>
-            <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Encyclopédie</button>
+            <button onclick="showPage('jukebox')" class="btn-cabinet">1. Lecteur Jukebox Local</button>
+            <button onclick="showPage('wiki')" class="btn-cabinet">2. Explorateur de Discographies</button>
         </div>
     </div>
 
-    <!-- PAGE JUKEBOX -->
-    <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl text-[#bda06a] font-serif">Ma Médiathèque</h2>
-            <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour</button>
+    <!-- PAGE JUKEBOX (La logique fonctionnelle) -->
+    <div id="jukebox-page" class="hidden parchment p-8 w-full max-w-4xl">
+        <div class="flex justify-between items-center mb-6 border-b border-[#bda06a] pb-2">
+            <h2 class="text-xl font-serif">Ma Médiathèque</h2>
+            <button onclick="showPage('home')" class="text-xs underline">Retour au cabinet</button>
         </div>
         
-        <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block text-white">
+        <label class="bg-[#bda06a] text-white px-4 py-2 rounded cursor-pointer font-bold hover:bg-[#8b5a2b] transition mb-4 inline-block">
             <i class="fa fa-folder-open mr-2"></i> Scanner dossiers
             <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
         </label>
         
-        <div class="flex gap-4 mb-6 border-b border-[#bda06a]/50">
+        <div class="flex gap-4 mb-6">
             <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
             <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
 
-        <div id="status" class="text-[#bda06a] mb-4 text-xs italic">En attente...</div>
-        <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
-            <table class="w-full text-left text-sm"><tbody id="music-list-body"></tbody></table>
-        </div>
-        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+        <div id="status" class="mb-4 text-xs italic">En attente...</div>
+        <div id="view-tracks" class="overflow-y-auto max-h-[40vh]"><table class="w-full text-left text-sm"><tbody id="music-list-body"></tbody></table></div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <!-- PAGE WIKI -->
-    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Explorateur MusicBrainz</h2>
-        <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Artiste...">
-            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
-            <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
+    <div id="wiki-page" class="hidden parchment p-8 w-full max-w-lg">
+        <h2 class="text-xl font-serif mb-4">Explorateur MusicBrainz</h2>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="wiki-query" class="flex-grow bg-[#fdf6e3] p-2 border border-[#bda06a] rounded" placeholder="Artiste...">
+            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-white font-bold">Chercher</button>
         </div>
-        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <button onclick="showPage('home')" class="text-xs underline">Retour au cabinet</button>
+        <div id="wiki-results" class="grid grid-cols-2 gap-2 mt-4 text-[10px]"></div>
     </div>
 
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
+    <!-- AUDIO BAR -->
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%]"></audio>
 
     <script>
         let tracks = [];
@@ -87,7 +108,7 @@
         }
 
         function processTags(i) {
-            if (i >= tracks.length) { document.getElementById('status').innerText = `Scan terminé : ${tracks.length} titres.`; return; }
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Total : ${tracks.length} titres.`; return; }
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
@@ -106,11 +127,10 @@
         function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
                 <tr class="border-b border-[#bda06a]/20"><td class="p-2">${t.title}</td><td class="p-2">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
-            
             const albums = [...new Set(tracks.map(t => t.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
-                <div class="parchment p-3 rounded text-center">
-                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 border border-[#bda06a]">` : `<div class="w-full aspect-square bg-black flex items-center justify-center rounded mb-2 border border-[#bda06a]"><i class="fa fa-record-vinyl text-4xl text-[#bda06a]"></i></div>`}
+                <div class="border border-[#bda06a] p-2 rounded text-center bg-[#fdf6e3]">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2">` : `<div class="w-full aspect-square bg-[#e6d3a3] flex items-center justify-center rounded mb-2"><i class="fa fa-compact-disc text-2xl text-[#8b5a2b]"></i></div>`}
                     <p class="text-[10px] font-bold truncate">${a}</p>
                 </div>`).join('');
         }
@@ -126,10 +146,10 @@
 
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
-            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
+            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=8&fmt=json`);
             const data = await res.json();
             document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="parchment p-2 rounded text-center text-[10px]">${r.title}</div>`).join('');
+                <div class="bg-[#fdf6e3] p-2 rounded border border-[#bda06a] text-center">${r.title}</div>`).join('');
         }
     </script>
 </body>

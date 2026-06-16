@@ -6,6 +6,9 @@
     <title>Mon Jukebox Personnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- DÉCODEUR DE TAGS INVISIBLES (Comme Windows Media Player) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
@@ -59,7 +62,7 @@
             <span class="border border-[#bda06a] p-2 rounded-full"><i class="fa-solid fa-music text-sm"></i></span>
             <span class="font-title tracking-widest text-xs uppercase">Espace Musique</span>
         </button>
-        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">Jukebox Haute Performance v2.1</span>
+        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">Jukebox Auto-Apprenant v3.0</span>
     </header>
 
     <main class="flex-grow flex items-center justify-center p-4">
@@ -68,7 +71,7 @@
             <div class="parchment p-8 sm:p-10 rounded-2xl text-stone-900">
                 <div class="text-center mb-8">
                     <h1 class="font-title text-2xl sm:text-3xl tracking-wider text-stone-800 border-b border-[#bda06a]/40 pb-3 inline-block">Discothèque Privée</h1>
-                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Gérez vos fichiers et explorez l'histoire de la musique.</p>
+                    <p class="font-serif-classic text-stone-600 text-md italic mt-2">Scanner, identifiez et explorez en toute sécurité.</p>
                 </div>
 
                 <div class="space-y-4">
@@ -81,10 +84,10 @@
                     </button>
 
                     <button onclick="showPage('wiki')" class="w-full bg-white/80 hover:bg-white border border-[#bda06a] text-stone-900 rounded-xl p-4 text-left flex items-center gap-4 transition shadow hover:shadow-md">
-                        <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-book-open-reader"></i></div>
+                        <div class="w-12 h-12 rounded-lg bg-amber-700/10 flex items-center justify-center text-amber-800 text-xl shrink-0"><i class="fa-solid fa-earth-europe"></i></div>
                         <div>
-                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Encyclopédie</div>
-                            <div class="font-serif-classic text-xl font-bold text-stone-800">2. Explorateur de Discographies</div>
+                            <div class="font-title text-xs tracking-wider text-stone-500 uppercase">Encyclopédie Libre</div>
+                            <div class="font-serif-classic text-xl font-bold text-stone-800">2. Base MusicBrainz</div>
                         </div>
                     </button>
                 </div>
@@ -96,7 +99,7 @@
             <div class="glass-panel rounded-2xl p-6 md:p-8">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#bda06a]/20 pb-6">
                     <div>
-                        <span class="text-[#bda06a] uppercase tracking-widest text-xs font-title">Lecteur de Fichiers</span>
+                        <span class="text-[#bda06a] uppercase tracking-widest text-xs font-title">Lecteur Intelligent</span>
                         <h2 class="font-title text-3xl text-white mt-1">Le Jukebox Personnel</h2>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -112,7 +115,8 @@
                     </div>
                 </div>
 
-                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide">Aucun morceau chargé pour cette session. Lancez un scan ci-dessus.</div>
+                <!-- STATUT DU SCAN ET DE L'ANALYSE ID3 -->
+                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide">Aucun morceau chargé pour cette session. Lancez un scan.</div>
 
                 <div class="overflow-x-auto bg-stone-900/60 rounded-xl border border-stone-800 max-h-[50vh] overflow-y-auto">
                     <table class="w-full text-left border-collapse text-sm">
@@ -122,12 +126,12 @@
                                 <th class="p-3 bg-stone-950/80">Titre du morceau</th>
                                 <th class="p-3 bg-stone-950/80">Artiste / Groupe</th>
                                 <th class="p-3 bg-stone-950/80">Source</th>
-                                <th class="p-3 text-right pr-6 bg-stone-950/80">Action</th>
+                                <th class="p-3 text-right pr-6 bg-stone-950/80">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="music-list-body" class="font-sans-clean text-stone-300">
                             <tr>
-                                <td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Sélectionnez un répertoire de votre ordinateur pour l'écouter instantanément...</td>
+                                <td colspan="5" class="p-8 text-center text-stone-500 italic font-serif-classic text-lg">Sélectionnez un répertoire pour peupler le Jukebox...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -135,31 +139,53 @@
             </div>
         </div>
 
-        <!-- WIKIPEDIA MUSICAL -->
+        <!-- ENCYCLOPÉDIE MUSICBRAINZ -->
         <div id="page-wiki" class="hidden w-full max-w-6xl">
             <div class="parchment rounded-2xl p-6 md:p-8 text-stone-900">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#bda06a]/40 pb-6">
                     <div>
-                        <span class="text-amber-800 uppercase tracking-widest text-xs font-title">Encyclopédie Numérique</span>
-                        <h2 class="font-title text-3xl text-stone-800 mt-1">Explorateur de Discographies</h2>
+                        <span class="text-amber-800 uppercase tracking-widest text-xs font-title">Base de Données Ouverte</span>
+                        <h2 class="font-title text-3xl text-stone-800 mt-1">Explorateur MusicBrainz</h2>
                     </div>
                     <button onclick="retourAccueil()" class="border border-stone-400 text-stone-700 font-title text-xs uppercase px-4 py-2.5 rounded hover:bg-stone-900/5 transition">Retour</button>
                 </div>
 
                 <div class="max-w-xl mx-auto mb-8 bg-white/60 p-4 rounded-xl border border-[#bda06a]/50 flex gap-2">
-                    <input type="text" id="wiki-search-input" onkeypress="if(event.key === 'Enter') triggerWikiSearch()" placeholder="Tapez le nom d'un artiste (Ex: Elsa Esnoult, Johnny Hallyday...)" class="flex-grow bg-white border border-stone-300 rounded-lg px-4 py-2 text-stone-900 font-serif-classic text-lg shadow-inner">
+                    <input type="text" id="wiki-search-input" onkeypress="if(event.key === 'Enter') triggerWikiSearch()" placeholder="Rechercher un artiste ou un album..." class="flex-grow bg-white border border-stone-300 rounded-lg px-4 py-2 text-stone-900 font-serif-classic text-lg shadow-inner">
                     <button onclick="triggerWikiSearch()" class="bg-amber-800 hover:bg-amber-900 text-white font-title text-xs uppercase px-6 py-2 rounded-lg transition tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass"></i> Chercher
+                        <i class="fa-solid fa-gavel"></i> Interroger
                     </button>
                 </div>
 
-                <div id="wiki-status" class="text-center text-stone-600 font-serif-classic italic text-lg mb-4">Entrez un artiste pour charger son histoire discographique...</div>
+                <div id="wiki-status" class="text-center text-stone-600 font-serif-classic italic text-lg mb-4">Recherche globale connectée au réseau ouvert Cover Art Archive...</div>
                 <div id="wiki-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[50vh] overflow-y-auto p-2"></div>
             </div>
         </div>
     </main>
 
-    <!-- BARRE DE LECTURE AUDIO -->
+    <!-- MODAL DE CORRECTION MANUELLE -->
+    <div id="edit-track-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="parchment rounded-xl max-w-md w-full p-6 text-stone-900">
+            <h3 class="font-title text-xl text-stone-800 border-b border-[#bda06a]/40 pb-3 mb-4"><i class="fa-solid fa-pen-to-square"></i> Correction forcée</h3>
+            <form onsubmit="saveTrackOverride(event)" class="space-y-4">
+                <input type="hidden" id="edit-track-index">
+                <div>
+                    <label class="block text-xs font-title text-stone-700 uppercase mb-1">Titre</label>
+                    <input type="text" id="edit-track-title" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900 font-semibold text-md">
+                </div>
+                <div>
+                    <label class="block text-xs font-title text-stone-700 uppercase mb-1">Artiste</label>
+                    <input type="text" id="edit-track-artist" required class="w-full border border-[#bda06a]/60 rounded px-3 py-2 bg-white/80 text-stone-900">
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-[#bda06a]/20">
+                    <button type="submit" class="flex-grow bg-[#8b5a2b] text-white font-title text-xs uppercase py-3 rounded">Sauvegarder</button>
+                    <button type="button" onclick="closeEditModal()" class="border border-stone-400 text-stone-700 font-title text-xs uppercase px-4 rounded">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BARRE DE LECTURE -->
     <div id="audio-player-bar" class="fixed bottom-0 left-0 right-0 glass-panel border-t border-[#bda06a]/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50 transform translate-y-full transition-transform duration-300">
         <div class="flex items-center gap-3 w-full sm:w-1/3">
             <div class="w-12 h-12 rounded bg-[#8b5a2b]/30 flex items-center justify-center text-[#bda06a] border border-[#bda06a]/20 shrink-0">
@@ -198,7 +224,9 @@
     <script>
         let localTracks = []; 
         let currentTrackIndex = -1;
+        let isAnalyzingTags = false;
         const audioElement = document.getElementById('main-audio-element');
+        let trackOverrides = JSON.parse(localStorage.getItem('jukebox_track_overrides')) || {};
 
         function showPage(pageId) {
             document.getElementById('page-home').classList.add('hidden');
@@ -213,16 +241,15 @@
         }
 
         /* -------------------------------------------------------------
-           🚀 IMPORTATION TURBO ÉCLAIR (ZÉRO GLITCH / 3000+ TITRES)
+           🚀 IMPORTATION TURBO ÉCLAIR
         ------------------------------------------------------------- */
         function importLocalMusic(event, sourceName) {
             const files = event.target.files;
             if (files.length === 0) return;
 
             const statusLabel = document.getElementById('music-scan-status');
-            statusLabel.innerText = `⏳ Calcul turbo en cours... Lecture de ${files.length} éléments...`;
+            statusLabel.innerText = `⏳ Indexation éclair de ${files.length} fichiers...`;
 
-            // STRATÉGIE HAUTE PERFORMANCE : Indexation instantanée par table de hachage
             const existingKeys = new Set(localTracks.map(t => t.fileName + '|' + t.size));
             const newTracks = [];
 
@@ -234,14 +261,18 @@
                     const key = file.name + '|' + file.size;
                     
                     if (!existingKeys.has(key)) {
-                        let cleanName = file.name.substring(0, file.name.lastIndexOf('.'));
-                        let title = cleanName;
+                        let title = file.name.substring(0, file.name.lastIndexOf('.'));
                         let artist = "Artiste Inconnu";
 
-                        if (cleanName.includes('-')) {
-                            let parts = cleanName.split('-');
+                        if (title.includes('-')) {
+                            let parts = title.split('-');
                             artist = parts[0].trim();
                             title = parts[1].trim();
+                        }
+
+                        if (trackOverrides[key]) {
+                            title = trackOverrides[key].title;
+                            artist = trackOverrides[key].artist;
                         }
 
                         newTracks.push({
@@ -250,23 +281,78 @@
                             title: title,
                             artist: artist,
                             source: sourceName,
-                            fileObject: file
+                            fileObject: file,
+                            tagsRead: false // Flag pour savoir si on a lu les infos internes
                         });
                         existingKeys.add(key);
                     }
                 }
             }
 
+            const startIndex = localTracks.length;
             localTracks = localTracks.concat(newTracks);
-            statusLabel.innerText = `✅ Base de données unifiée : ${localTracks.length} morceaux indexés à la volée ! (SSD et Disque Interne fusionnés)`;
             
-            // Lancement de l'affichage optimisé
             renderMusicTable();
+            
+            // DÉCLENCHEMENT DE L'ANALYSE ID3 EN ARRIÈRE-PLAN (Style Windows Media Player)
+            if(!isAnalyzingTags) {
+                startBackgroundTagReader(startIndex);
+            }
         }
 
         /* -------------------------------------------------------------
-           🚀 AFFICHAGE EN FLUX UNIQUE (PAS DE FREEZE)
+           🕵️‍♂️ LE DÉTECTEUR DE TAGS CACHÉS (MÊME MÉTHODE QUE WMP)
         ------------------------------------------------------------- */
+        function startBackgroundTagReader(index) {
+            if (index >= localTracks.length) {
+                isAnalyzingTags = false;
+                document.getElementById('music-scan-status').innerText = `✅ Détection complétée ! ${localTracks.length} morceaux prêts et identifiés.`;
+                return;
+            }
+
+            isAnalyzingTags = true;
+            const track = localTracks[index];
+            const key = track.fileName + '|' + track.size;
+            
+            // Si l'utilisateur a fait une correction manuelle, on respecte son choix
+            if (trackOverrides[key]) {
+                startBackgroundTagReader(index + 1);
+                return;
+            }
+
+            document.getElementById('music-scan-status').innerText = `🔍 Analyse WMP active : Vérification des métadonnées internes (${index + 1}/${localTracks.length})...`;
+
+            // Utilisation de la bibliothèque jsmediatags pour lire à l'intérieur du fichier physique
+            window.jsmediatags.read(track.fileObject, {
+                onSuccess: function(tag) {
+                    let updated = false;
+                    if (tag.tags.title && tag.tags.title.trim() !== "") {
+                        track.title = tag.tags.title.trim();
+                        updated = true;
+                    }
+                    if (tag.tags.artist && tag.tags.artist.trim() !== "") {
+                        track.artist = tag.tags.artist.trim();
+                        updated = true;
+                    }
+
+                    // Si on a trouvé des vraies infos cachées à la place de "piste 01", on met à jour la ligne en direct !
+                    if (updated) {
+                        const titleEl = document.getElementById(`track-title-${index}`);
+                        const artistEl = document.getElementById(`track-artist-${index}`);
+                        if (titleEl) titleEl.innerText = track.title;
+                        if (artistEl) artistEl.innerText = track.artist;
+                    }
+                    
+                    // Passer au morceau suivant immédiatement
+                    setTimeout(() => startBackgroundTagReader(index + 1), 5);
+                },
+                onError: function() {
+                    // Si le fichier n'a pas de tags ou est illisible, on passe calmement au suivant
+                    setTimeout(() => startBackgroundTagReader(index + 1), 5);
+                }
+            });
+        }
+
         function renderMusicTable() {
             const tbody = document.getElementById('music-list-body');
             if(!tbody) return;
@@ -276,9 +362,7 @@
                 return;
             }
 
-            // STRATÉGIE HAUTE PERFORMANCE : On accumule tout en mémoire dans une seule chaîne de texte
             let giantHtmlBuffer = "";
-
             for(let i = 0; i < localTracks.length; i++) {
                 const track = localTracks[i];
                 const isCurrent = (i === currentTrackIndex);
@@ -288,19 +372,50 @@
                         <td class="p-3 pl-6 text-xs font-semibold">
                             ${isCurrent ? '<span class="text-green-500 animate-pulse">▶ LECTURE</span>' : '<span class="text-stone-500">Prêt</span>'}
                         </td>
-                        <td class="p-3 font-semibold text-white max-w-xs truncate">${track.title}</td>
-                        <td class="p-3 text-stone-400 font-serif-classic text-base max-w-xs truncate">${track.artist}</td>
+                        <!-- ID uniques sur les cases de texte pour pouvoir les modifier à la volée pendant le scan arrière-plan -->
+                        <td id="track-title-${i}" class="p-3 font-semibold text-white max-w-xs truncate">${track.title}</td>
+                        <td id="track-artist-${i}" class="p-3 text-stone-400 font-serif-classic text-base max-w-xs truncate">${track.artist}</td>
                         <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded bg-stone-950/40 border border-stone-800 text-stone-300">${track.source}</span></td>
-                        <td class="p-3 text-right pr-6">
-                            <button onclick="playLocalTrack(${i})" class="bg-[#bda06a] text-stone-950 p-2 rounded-full w-8 h-8 flex items-center justify-center transition hover:scale-105 inline-flex">
-                                <i class="${isCurrent && !audioElement.paused ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5'}"></i>
-                            </button>
+                        <td class="p-3 text-right pr-6 space-x-1">
+                            <button onclick="openEditModal(${i})" class="text-stone-400 hover:text-[#bda06a] p-2 transition"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button onclick="playLocalTrack(${i})" class="bg-[#bda06a] text-stone-950 p-2 rounded-full w-8 h-8 flex items-center justify-center transition hover:scale-105 inline-flex"><i class="${isCurrent && !audioElement.paused ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5'}"></i></button>
                         </td>
                     </tr>`;
             }
-
-            // Injection unique dans le DOM (Prend moins de 10 millisecondes au lieu de plusieurs minutes !)
             tbody.innerHTML = giantHtmlBuffer;
+        }
+
+        function openEditModal(index) {
+            const track = localTracks[index];
+            document.getElementById('edit-track-index').value = index;
+            document.getElementById('edit-track-title').value = track.title;
+            document.getElementById('edit-track-artist').value = track.artist;
+            document.getElementById('edit-track-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('edit-track-modal').classList.add('hidden'); }
+
+        function saveTrackOverride(event) {
+            event.preventDefault();
+            const index = document.getElementById('edit-track-index').value;
+            const newTitle = document.getElementById('edit-track-title').value.trim();
+            const newArtist = document.getElementById('edit-track-artist').value.trim();
+            
+            const track = localTracks[index];
+            const key = track.fileName + '|' + track.size;
+
+            trackOverrides[key] = { title: newTitle, artist: newArtist };
+            localStorage.setItem('jukebox_track_overrides', JSON.stringify(trackOverrides));
+
+            track.title = newTitle; track.artist = newArtist;
+
+            if (parseInt(index) === currentTrackIndex) {
+                document.getElementById('player-track-title').innerText = newTitle;
+                document.getElementById('player-track-artist').innerText = newArtist;
+            }
+
+            closeEditModal();
+            renderMusicTable();
         }
 
         function playLocalTrack(index) {
@@ -339,51 +454,56 @@
                 document.getElementById('player-time-total').innerText = formatTime(audioElement.duration);
             }
         }
+        // Correction de l'erreur d'inversion pour le défilement du morceau
         function seekAudio() { audioElement.currentTime = document.getElementById('player-progress').value; }
         function setPlayerVolume() { audioElement.volume = document.getElementById('player-volume').value / 100; }
         function formatTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
 
         /* -------------------------------------------------------------
-           🌐 MODULE 2 : L'EXPLORATEUR ENCYCLOPÉDIQUE (DISCOGRAPHIE)
+           🌐 RECHERCHE ALTERNATIVE : MOTEUR OUVERT MUSICBRAINZ
         ------------------------------------------------------------- */
         function triggerWikiSearch() {
             const query = document.getElementById('wiki-search-input').value.trim();
-            if (!query) return alert("Veuillez entrer le nom d'un artiste.");
+            if (!query) return alert("Veuillez entrer une recherche.");
 
             const status = document.getElementById('wiki-status');
             const grid = document.getElementById('wiki-grid');
-            status.innerText = `⏳ Consultation de la base encyclopédique pour "${query}"...`;
+            status.innerText = `⏳ Recherche sur les serveurs ouverts de MusicBrainz...`;
             grid.innerHTML = "";
 
-            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=100`)
+            // Interrogation directe de l'API libre MusicBrainz par albums/parutions
+            fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(query)}"+OR+release:"${encodeURIComponent(query)}"&limit=40&fmt=json`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        status.innerHTML = `<span class="text-green-800 font-bold">✅ ${data.results.length} album(s) répertorié(s) pour "${query}"</span>`;
-                        const sortedAlbums = data.results.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+                    if (data.releases && data.releases.length > 0) {
+                        status.innerHTML = `<span class="text-green-800 font-bold">✅ Encyclopédie chargée (${data.releases.length} résultats trouvés)</span>`;
                         
                         let wikiHtmlBuffer = "";
-                        sortedAlbums.forEach(album => {
-                            const year = album.releaseDate ? album.releaseDate.substring(0, 4) : '????';
-                            const hdCover = album.artworkUrl100.replace("100x100bb", "300x300bb");
-                            const genre = album.primaryGenreName || "Musique";
+                        data.releases.forEach(album => {
+                            const year = album.date ? album.date.substring(0, 4) : '----';
+                            const artistName = album['artist-credit'] ? album['artist-credit'][0].name : 'Inconnu';
+                            
+                            // Récupération de la pochette officielle sur le réseau libre Cover Art Archive (sans API key)
+                            const coverUrl = `https://coverartarchive.org/release/${album.id}/front`;
 
                             wikiHtmlBuffer += `
                                 <div class="bg-white p-3 rounded-xl border border-stone-300 shadow-sm flex flex-col justify-between hover:shadow-md transition">
                                     <div>
-                                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-100 mb-2">
-                                            <img src="${hdCover}" class="w-full h-full object-cover">
+                                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-900 mb-2 flex items-center justify-center relative">
+                                            <!-- Si l'album n'a pas de photo sur le serveur public, le code bascule proprement sur un fond vinyle par défaut -->
+                                            <img src="${coverUrl}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&q=80';" class="w-full h-full object-cover">
                                         </div>
-                                        <h4 class="font-title text-[11px] text-stone-900 font-bold line-clamp-2 leading-tight">${album.collectionName}</h4>
-                                        <p class="text-[10px] text-amber-900 font-serif-classic font-bold italic mt-1">${year} — ${genre}</p>
+                                        <h4 class="font-title text-[11px] text-stone-900 font-bold line-clamp-1 leading-tight">${album.title}</h4>
+                                        <p class="text-[10px] text-stone-500 font-sans truncate mt-0.5">De : ${artistName}</p>
+                                        <p class="text-[10px] text-amber-900 font-serif-classic font-bold italic mt-1">${year}</p>
                                     </div>
-                                    <div class="text-[9px] text-stone-500 mt-2 border-t border-stone-100 pt-1 text-right">${album.trackCount} pistes</div>
+                                    <div class="text-[9px] text-stone-400 mt-2 border-t border-stone-100 pt-1 text-right">${album['track-count'] || '0'} titres</div>
                                 </div>`;
                         });
                         grid.innerHTML = wikiHtmlBuffer;
-                    } else { status.innerText = "❌ Aucun artiste trouvé."; }
+                    } else { status.innerText = "❌ Aucun album ou artiste trouvé dans la base MusicBrainz."; }
                 })
-                .catch(() => { status.innerText = "❌ Erreur réseau."; });
+                .catch(() => { status.innerText = "❌ Erreur de connexion au serveur ouvert MusicBrainz."; });
         }
     </script>
 </body>

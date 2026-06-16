@@ -7,63 +7,58 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Ambiance Cabinet de curiosité */
-        body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
-        .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .gold-border { border: 2px solid #bda06a; }
-        .album-card { background: #1a1612; border: 2px solid #bda06a; transition: transform 0.2s; }
+        body { background: #0c0a09; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
+        .parchment { background: #1a1612; border: 2px solid #bda06a; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .tab-btn { padding: 12px 24px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; }
+        .album-card { border: 2px solid #bda06a; background: #26211c; padding: 10px; border-radius: 8px; transition: transform 0.2s; }
         .album-card:hover { transform: scale(1.05); }
-        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; }
-        .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; font-weight: bold; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-10">
 
-    <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
-        <h1 class="text-4xl font-serif text-[#bda06a] mb-2">Discothèque</h1>
-        <h2 class="text-xl text-[#bda06a] mb-8 italic">Privée</h2>
+    <!-- ACCUEIL -->
+    <div id="home-page" class="max-w-md mx-auto parchment p-10 rounded-xl text-center">
+        <h1 class="text-4xl text-[#bda06a] mb-8">Discothèque Privée</h1>
         <div class="space-y-4">
-            <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition shadow-lg">1. Entrer dans le Cabinet</button>
+            <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition">1. Entrer dans le Cabinet</button>
             <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Encyclopédie</button>
         </div>
     </div>
 
-    <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
+    <!-- JUKEBOX -->
+    <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl text-[#bda06a] font-serif">Ma Collection</h2>
-            <button onclick="showPage('home')" class="text-xs underline">Retour au Cabinet</button>
+            <h2 class="text-2xl text-[#bda06a]">Ma Médiathèque</h2>
+            <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour</button>
         </div>
-        
-        <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
-            <i class="fa fa-folder-open mr-2"></i> Scanner mes dossiers
+        <label class="bg-amber-800 px-6 py-2 rounded cursor-pointer font-bold hover:bg-amber-700 transition inline-block mb-6">
+            <i class="fa fa-folder-open mr-2"></i> Scanner dossiers
             <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
         </label>
-        
         <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
             <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
             <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
-
-        <div id="status" class="text-amber-500 mb-4 text-sm italic">En attente...</div>
+        <div id="status" class="text-amber-500 mb-4 text-xs italic">En attente...</div>
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
-            <table class="w-full text-left">
-                <tbody id="music-list-body"></tbody>
-            </table>
+            <table class="w-full text-left text-sm"><tbody id="music-list-body"></tbody></table>
         </div>
         <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
     </div>
 
-    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Explorateur MusicBrainz</h2>
+    <!-- WIKI -->
+    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl">
+        <h2 class="text-2xl text-[#bda06a] mb-6">Explorateur MusicBrainz</h2>
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Artiste...">
+            <input type="text" id="wiki-query" class="flex-grow bg-black p-2 border border-[#bda06a] rounded" placeholder="Artiste...">
             <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
             <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2"></audio>
 
     <script>
         let tracks = [];
@@ -78,18 +73,21 @@
         }
 
         function importMusic(e) {
-            tracks = [];
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
-            files.forEach(f => tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" }));
+            files.forEach(f => {
+                if (!tracks.find(t => t.file.name === f.name)) {
+                    tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" });
+                }
+            });
             render(); processTags(0);
         }
 
         function processTags(i) {
-            if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
+            if (i >= tracks.length) { document.getElementById('status').innerText = `Total : ${tracks.length} titres.`; return; }
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
-                    tracks[i].album = t.tags.album || "Album Inconnu";
+                    tracks[i].album = t.tags.album || "Inconnu";
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         albumCovers[tracks[i].album] = b64;
@@ -103,12 +101,12 @@
 
         function render() {
             document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
-                <tr class="border-b border-[#bda06a]/20 hover:bg-[#bda06a]/10 transition"><td class="p-3">${t.title}</td><td class="p-3 text-stone-400">${t.artist}</td><td class="p-3"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+                <tr class="border-b border-[#bda06a]/20"><td class="p-2">${t.title}</td><td class="p-2 text-[#bda06a]/70">${t.artist}</td><td class="p-2"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
             
             const albums = [...new Set(tracks.map(t => t.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
-                <div class="album-card p-3 rounded text-center">
-                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 gold-border">` : `<div class="w-full aspect-square bg-black flex items-center justify-center rounded mb-2 gold-border"><i class="fa fa-record-vinyl text-4xl text-[#bda06a]"></i></div>`}
+                <div class="album-card text-center">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2">` : `<div class="w-full aspect-square flex items-center justify-center text-[#bda06a]"><i class="fa fa-record-vinyl text-4xl"></i></div>`}
                     <p class="text-[10px] font-bold truncate">${a}</p>
                 </div>`).join('');
         }

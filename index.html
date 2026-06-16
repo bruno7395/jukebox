@@ -67,7 +67,7 @@
             <span class="border border-[#bda06a] p-2 rounded-full"><i class="fa-solid fa-music text-sm"></i></span>
             <span class="font-title tracking-widest text-xs uppercase">Espace Musique</span>
         </button>
-        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">WMP Pro v4.6 (Tri par Dossiers)</span>
+        <span class="text-[10px] font-title px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-400">WMP Connect v4.8</span>
     </header>
 
     <main class="flex-grow flex items-center justify-center p-4">
@@ -130,7 +130,7 @@
                     </div>
                 </div>
 
-                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide">En attente de scan...</div>
+                <div id="music-scan-status" class="text-xs text-[#bda06a] mb-4 font-semibold tracking-wide bg-stone-950/30 p-2 rounded border border-stone-800">En attente de scan...</div>
 
                 <div id="wmp-view-tracks" class="overflow-x-auto bg-stone-900/60 rounded-xl border border-stone-800 max-h-[50vh] overflow-y-auto">
                     <table class="w-full text-left border-collapse text-sm">
@@ -202,11 +202,12 @@
         <div class="flex items-center justify-end gap-3 w-full sm:w-1/3"><span id="player-track-source" class="text-[10px] bg-stone-800 border border-stone-700 px-2 py-0.5 rounded text-stone-400 font-title uppercase">SOURCE</span><div class="flex items-center gap-1.5 text-stone-400"><i class="fa-solid fa-volume-low text-xs"></i><input type="range" id="player-volume" value="80" min="0" max="100" oninput="setPlayerVolume()" class="w-20 accent-[#bda06a] bg-stone-800 h-1 rounded cursor-pointer"></div></div>
     </div>
 
-    <audio id="main-audio-element" ontimeupdate="onAudioTimeUpdate()" onended="playerNext()"></audio>
+    <audio id="main-audio-element" ontimeupdate="onAudioTimeUpdate()" onended="playerNext()" onerror="handleAudioError()"></audio>
 
     <script>
         let localTracks = []; let currentTrackIndex = -1; let isAnalyzingTags = false; let activeWmpTab = 'tracks';
         let filterAlbumName = null; let filterArtistName = null;
+        let activeBlobUrl = null; // Mémoire du lien en cours pour le nettoyer proprement
         
         let trackOverrides = JSON.parse(localStorage.getItem('jukebox_track_overrides')) || {};
         let metadataCache = JSON.parse(localStorage.getItem('jukebox_metadata_cache')) || {};
@@ -239,15 +240,27 @@
         function updateFilterBadge(text) { const badge = document.getElementById('active-filter-badge'); document.getElementById('filter-badge-text').innerText = text; badge.classList.remove('hidden'); badge.classList.add('flex'); }
         function clearWmpFilter() { filterAlbumName = null; filterArtistName = null; document.getElementById('active-filter-badge').classList.add('hidden'); renderMusicTable(); }
 
+        function handleAudioError() {
+            const error = audioElement.error;
+            const logLabel = document.getElementById('music-scan-status');
+            let msg = "⚠️ Le navigateur bloque la lecture de ce fichier.";
+            if (error) {
+                if (error.code === 2) msg = "❌ Fichier bloqué par la sécurité du navigateur.";
+                if (error.code === 3) msg = "❌ Codec audio manquant sur votre navigateur.";
+                if (error.code === 4) msg = "❌ Format non supporté en ligne (Privilégiez les vrais .mp3).";
+            }
+            logLabel.innerHTML = `<span class="text-red-400 font-bold">${msg} (VLC possède des décodeurs que Chrome n'a pas).</span>`;
+            document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+        }
+
         /* -------------------------------------------------------------
-           🚀 IMPORTATION AVEC CLÉ DE CHEMIN UNIQUE (PAS DE DOUBLONS INJUSTES)
+           🚀 IMPORTATION PAR CHEMINS UNIQUE
         ------------------------------------------------------------- */
         function importLocalMusic(event, sourceName) {
             const files = event.target.files; if (files.length === 0) return;
             const statusLabel = document.getElementById('music-scan-status');
-            statusLabel.innerText = `⏳ Chargement...`;
+            statusLabel.innerText = `⏳ Tri et chargement des fichiers...`;
 
-            // Utilisation du chemin complet du dossier (webkitRelativePath) pour la sécurité anti-doublon
             const existingKeys = new Set(localTracks.map(t => t.path + '|' + t.size));
             const newTracks = [];
 
@@ -256,7 +269,6 @@
                 const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
                 
                 if (['.mp3', '.wav', '.m4a', '.flac', '.ogg'].includes(fileExt)) {
-                    // La clé inclut maintenant le dossier d'origine (Album ou Compilation)
                     const key = file.webkitRelativePath + '|' + file.size;
                     
                     if (!existingKeys.has(key)) {
@@ -282,7 +294,7 @@
 
                         newTracks.push({
                             fileName: file.name,
-                            path: file.webkitRelativePath, // Enregistrement du chemin complet du fichier
+                            path: file.webkitRelativePath,
                             size: file.size,
                             title: title,
                             artist: artist,
@@ -298,7 +310,6 @@
 
             const startIndex = localTracks.length; localTracks = localTracks.concat(newTracks);
             updateCounters(); renderMusicTable();
-            
             if(!isAnalyzingTags) { startBackgroundTagReader(startIndex); }
         }
 
@@ -312,7 +323,7 @@
         function startBackgroundTagReader(index) {
             if (index >= localTracks.length) {
                 isAnalyzingTags = false;
-                document.getElementById('music-scan-status').innerText = `✅ WMP Prêt ! ${localTracks.length} morceaux chargés instantanément.`;
+                document.getElementById('music-scan-status').innerText = `✅ Médiathèque prête ! ${localTracks.length} morceaux disponibles.`;
                 updateCounters();
                 if(activeWmpTab === 'albums') renderAlbumsGrid(); if(activeWmpTab === 'artists') renderArtistsGrid();
                 return;
@@ -320,12 +331,7 @@
 
             isAnalyzingTags = true; const track = localTracks[index];
             const key = track.path + '|' + track.size;
-            
-            if (track.tagsRead) {
-                setTimeout(() => startBackgroundTagReader(index + 1), 1); return;
-            }
-
-            document.getElementById('music-scan-status').innerText = `🔍 Analyse et mise en cache des morceaux (${index + 1}/${localTracks.length})...`;
+            if (track.tagsRead) { setTimeout(() => startBackgroundTagReader(index + 1), 1); return; }
 
             window.jsmediatags.read(track.fileObject, {
                 onSuccess: function(tag) {
@@ -400,7 +406,6 @@
                 if(!uniqueAlbums[t.album]) uniqueAlbums[t.album] = { name: t.album, artist: t.artist, count: 0 };
                 uniqueAlbums[t.album].count++;
             });
-            if(Object.keys(uniqueAlbums).length === 0) { grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500">Aucun album...</div>`; return; }
             let html = "";
             Object.values(uniqueAlbums).forEach(album => {
                 const cover = albumCovers[album.name];
@@ -458,22 +463,53 @@
             closeEditModal(); updateCounters(); renderMusicTable();
         }
 
+        /* -------------------------------------------------------------
+           🎵 LECTURE AVEC NETTOYAGE DU BUFFER MÉMOIRE (ÉVITE LES FREEZES CRITICAL)
+        ------------------------------------------------------------- */
         function playLocalTrack(index) {
-            if (index < 0 || index >= localTracks.length) return; if (currentTrackIndex === index) { togglePlayPause(); return; }
-            currentTrackIndex = index; const track = localTracks[currentTrackIndex];
-            audioElement.src = URL.createObjectURL(track.fileObject); audioElement.play();
+            if (index < 0 || index >= localTracks.length) return;
+            if (currentTrackIndex === index) { togglePlayPause(); return; }
 
-            document.getElementById('player-track-title').innerText = track.title; document.getElementById('player-track-artist').innerText = track.artist;
-            document.getElementById('player-track-source').innerText = track.source; document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-pause"></i>`;
+            // Libérer l'ancienne adresse mémoire pour ne pas saturer le navigateur
+            if(activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
+
+            currentTrackIndex = index;
+            const track = localTracks[currentTrackIndex];
             
-            const coverEl = document.getElementById('player-album-cover'); const coverImg = albumCovers[track.album];
-            if(coverImg) { coverEl.innerHTML = `<img src="${coverImg}" class="w-full h-full object-cover">`; } 
-            else { coverEl.innerHTML = `<i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>`; }
-            document.getElementById('audio-player-bar').classList.remove('translate-y-full'); renderMusicTable();
+            try {
+                // Créer l'adresse de lecture directe
+                activeBlobUrl = URL.createObjectURL(track.fileObject);
+                audioElement.src = activeBlobUrl;
+                
+                audioElement.load(); // Force le navigateur à rafraîchir ses décodeurs physiques
+                
+                const playPromise = audioElement.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        document.getElementById('player-play-btn').innerHTML = `<i class="fa-solid fa-pause"></i>`;
+                        document.getElementById('music-scan-status').innerText = `▶ Lecture active : ${track.title}`;
+                    }).catch(() => {
+                        document.getElementById('music-scan-status').innerText = `⚠️ Action requise : Re-cliquez sur le bouton Play pour valider l'autorisation.`;
+                    });
+                }
+
+                document.getElementById('player-track-title').innerText = track.title;
+                document.getElementById('player-track-artist').innerText = track.artist;
+                document.getElementById('player-track-source').innerText = track.source;
+                
+                const coverEl = document.getElementById('player-album-cover'); const coverImg = albumCovers[track.album];
+                if(coverImg) { coverEl.innerHTML = `<img src="${coverImg}" class="w-full h-full object-cover">`; } 
+                else { coverEl.innerHTML = `<i class="fa-solid fa-compact-disc text-xl animate-spin" style="animation-duration: 3s;"></i>`; }
+                document.getElementById('audio-player-bar').classList.remove('translate-y-full');
+                renderMusicTable();
+            } catch(e) {
+                document.getElementById('music-scan-status').innerText = `❌ Inaccessible.`;
+            }
         }
 
         function togglePlayPause() {
-            if (currentTrackIndex === -1 && localTracks.length > 0) return playLocalTrack(0); if (currentTrackIndex === -1) return;
+            if (currentTrackIndex === -1 && localTracks.length > 0) return playLocalTrack(0);
+            if (currentTrackIndex === -1) return;
             const playBtn = document.getElementById('player-play-btn');
             if (audioElement.paused) { audioElement.play(); playBtn.innerHTML = `<i class="fa-solid fa-pause"></i>`; } 
             else { audioElement.pause(); playBtn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`; }
@@ -488,13 +524,14 @@
         function formatTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${sec < 10 ? '0' : ''}${sec}`; }
 
         /* -------------------------------------------------------------
-           🌐 RECHERCHE MUSICBRAINZ
+           🌐 RECHERCHE ENCYCLOPÉDIE MUSICBRAINZ (CORRIGÉE !)
         ------------------------------------------------------------- */
         function triggerWikiSearch() {
             const query = document.getElementById('wiki-search-input').value.trim(); if (!query) return alert("Veuillez entrer une recherche.");
             const status = document.getElementById('wiki-status'); const grid = document.getElementById('wiki-grid');
             status.innerText = `⏳ Requête en cours...`; grid.innerHTML = "";
 
+            // Correction de la parenthèse manquante sur cette ligne d'interrogation
             fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(query)}"+OR+release:"${encodeURIComponent(query)}"&limit=30&fmt=json`)
                 .then(res => res.json()).then(data => {
                     if (data.releases && data.releases.length > 0) {

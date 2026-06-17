@@ -2,14 +2,13 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Jukebox</title>
+    <title>Mon Jukebox Personnel</title>
     <style>
         body { background: #262626; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; }
         .parchemin { background: #e1c699; border: 2px solid #8b5a2b; border-radius: 10px; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 350px; text-align: center; }
         .hidden { display: none; }
-        .btn-menu { background: white; border: 1px solid #8b5a2b; padding: 15px; margin: 10px 0; display: flex; align-items: center; gap: 15px; border-radius: 5px; cursor: pointer; width: 100%; box-sizing: border-box; }
+        .btn-menu { background: white; border: 1px solid #8b5a2b; padding: 15px; margin: 10px 0; display: flex; align-items: center; gap: 15px; border-radius: 5px; cursor: pointer; width: 100%; box-sizing: border-box; text-align: left; }
         .btn-menu:hover { background: #fdfdfd; }
-        #liste-musiques { list-style: none; padding: 0; text-align: left; }
     </style>
 </head>
 <body>
@@ -30,13 +29,13 @@
         <h2>Médiathèque</h2>
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)">
         <ul id="liste-musiques"></ul>
-        <button onclick="showPage('home')" style="margin-top:20px;">Retour</button>
+        <button onclick="showPage('home')" style="margin-top:20px; cursor:pointer;">Retour</button>
     </div>
 
     <div id="page-wiki" class="parchemin hidden">
         <h2>Encyclopédie</h2>
-        <p>Recherche d'artistes en ligne...</p>
-        <button onclick="showPage('home')">Retour</button>
+        <p>Base MusicBrainz connectée.</p>
+        <button onclick="showPage('home')" style="margin-top:20px; cursor:pointer;">Retour</button>
     </div>
 
     <script>

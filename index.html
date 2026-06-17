@@ -128,3 +128,11 @@
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const t = s.query.search[0].title;
                 const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
+                const m = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${t}"&limit=12&fmt=json`).then(r => r.json());
+                res.innerHTML = `<div class="p-4 parchment mb-4 col-span-full"><h3 class="text-xl text-[#bda06a]">${w.title}</h3><p class="text-sm">${w.extract}</p></div>` + 
+                    m.releases.map(r => `<div class="parchment p-2 text-center text-[10px]"><p class="font-bold">${r.title}</p></div>`).join('');
+            } catch(e) { res.innerHTML = "Non trouvé."; }
+        }
+    </script>
+</body>
+</html>

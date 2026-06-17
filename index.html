@@ -12,9 +12,9 @@
         .btn-luxe:hover { background: #bda06a; color: black; }
         .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         
+        /* Navigation regroupée */
         .nav-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #bda06a; padding-bottom: 10px; margin-bottom: 20px; }
-        .tabs-container { display: flex; gap: 30px; }
-        .tab-btn { color: #bda06a; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.9rem; opacity: 0.6; }
+        .tab-btn { color: #bda06a; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.9rem; opacity: 0.6; padding: 5px 15px; }
         .tab-btn.active { opacity: 1; border-bottom: 2px solid #bda06a; color: white; }
         .back-btn { color: #bda06a; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
         
@@ -24,9 +24,6 @@
         
         li { padding: 12px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
-        
-        /* Style Wiki */
-        .wiki-card { background: #26211c; border: 1px solid #bda06a; padding: 15px; text-align: center; color: #d6c195; }
     </style>
 </head>
 <body class="p-6">
@@ -40,30 +37,36 @@
     <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="nav-header">
             <button onclick="showPage('home')" class="back-btn">← Accueil</button>
-            <div class="tabs-container">
+            <div class="flex gap-4">
                 <button onclick="showView('tracks')" id="btn-tracks" class="tab-btn active">Morceaux</button>
                 <button onclick="showView('albums')" id="btn-albums" class="tab-btn">Albums</button>
             </div>
         </div>
+
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-sm">
         <div id="now-playing" class="status-bar">Aucun morceau sélectionné</div>
+
         <div class="flex justify-center gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
             <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
             <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
         </div>
+
         <ul id="view-tracks" class="text-lg text-[#d6c195]"></ul>
         <div id="view-albums" class="hidden grid grid-cols-3 md:grid-cols-5 gap-4 p-4"></div>
     </div>
 
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
+        <div class="nav-header">
+            <button onclick="showPage('home')" class="back-btn">← Accueil</button>
+            <h2 class="text-xl text-[#bda06a] font-serif">Encyclopédie</h2>
+        </div>
+        
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" placeholder="Artiste ou Groupe..." class="flex-1 bg-[#1a1612] border border-[#bda06a] p-2 text-[#d6c195] rounded">
+            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] border border-[#bda06a] p-2 text-[#d6c195] rounded" placeholder="Artiste...">
             <button onclick="searchWiki()" class="btn-ctrl-luxe">Rechercher</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-        <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
     <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4"></audio>
@@ -75,8 +78,14 @@
         const display = document.getElementById('now-playing');
 
         function showPage(id) {
-            audio.pause(); audio.currentTime = 0;
-            display.innerText = "Aucun morceau sélectionné";
+            // Si on quitte la page Wiki, on vide la recherche
+            if (id !== 'wiki') {
+                document.getElementById('wiki-results').innerHTML = "";
+                document.getElementById('wiki-query').value = "";
+            }
+
+            audio.pause(); 
+            // On ne rembobine pas forcément ici pour garder la progression si on change juste de vue
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
             document.getElementById('wiki-page').classList.add('hidden');
@@ -90,7 +99,6 @@
             document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
 
-        // --- MOTEUR WIKI ---
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
             if(!q) return;
@@ -98,7 +106,7 @@
             const data = await res.json();
             const container = document.getElementById('wiki-results');
             container.innerHTML = data.releases.map(r => `
-                <div class="wiki-card rounded">
+                <div class="parchment p-3 text-center border border-[#bda06a]/30 rounded">
                     <p class="text-sm font-bold text-white mb-1">${r.title}</p>
                     <p class="text-[10px] text-[#bda06a]">${r['artist-credit'] ? r['artist-credit'][0].name : 'Inconnu'}</p>
                 </div>

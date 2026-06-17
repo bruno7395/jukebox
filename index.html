@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée</title>
+    <title>Discothèque Privée - Version Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,7 +11,7 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); padding: 2rem; border-radius: 10px; }
         .btn-menu { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 15px; width: 100%; text-align: left; margin-bottom: 10px; cursor: pointer; font-size: 1.2rem; }
         .btn-menu:hover { background: #bda06a; color: black; }
-        .tab-btn { padding: 10px 20px; color: #d6c195; cursor:pointer; border-bottom: 2px solid transparent; }
+        .tab-btn { padding: 10px 20px; color: #d6c195; cursor:pointer; border-bottom: 2px solid transparent; text-transform: uppercase; font-weight: bold; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
     </style>
@@ -35,10 +35,8 @@
             <div onclick="showTab('albums')" class="tab-btn" id="tab-albums">Albums</div>
         </div>
 
-        <div id="view-tracks">
-            <table class="w-full text-left"><tbody id="media-list"></tbody></table>
-        </div>
-        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+        <div id="view-tracks"><table class="w-full text-left"><tbody id="media-list"></tbody></table></div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
         
         <div class="fixed bottom-0 left-0 w-full bg-[#1a1612] p-4 border-t border-[#bda06a]">
             <audio id="player" controls class="w-full"></audio>
@@ -52,17 +50,16 @@
             <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold">Chercher</button>
             <button onclick="changeView('home')" class="border p-2">Retour</button>
         </div>
-        <div id="wiki-results" class="space-y-4"></div>
+        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <script>
         const player = document.getElementById('player');
+        let mediaItems = [];
+        let albumCovers = {};
 
         function changeView(view) {
-            // STOP TOTAL de la musique si on quitte le Jukebox
-            player.pause();
-            player.src = "";
-            
+            player.pause(); player.src = "";
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
             document.getElementById('jukebox-view').style.display = (view === 'jukebox') ? 'block' : 'none';
             document.getElementById('wiki-view').style.display = (view === 'wiki') ? 'block' : 'none';
@@ -76,15 +73,35 @@
         }
 
         function importFiles(e) {
-            const list = document.getElementById('media-list');
-            list.innerHTML = "";
-            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i)).forEach(file => {
-                const row = document.createElement('tr');
-                row.className = "border-b border-[#bda06a]/30";
-                row.innerHTML = `<td class="p-3">${file.name}</td>
-                    <td class="p-3"><button onclick="player.src='${URL.createObjectURL(file)}'; player.play();" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>`;
-                list.appendChild(row);
+            mediaItems = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
+            renderLists();
+            mediaItems.forEach(file => {
+                window.jsmediatags.read(file, {
+                    onSuccess: (t) => {
+                        if(t.tags.picture) {
+                            const b64 = "data:"+t.tags.picture.format+";base64,"+btoa(String.fromCharCode(...t.tags.picture.data));
+                            albumCovers[t.tags.album || "Inconnu"] = b64;
+                            renderLists();
+                        }
+                    }
+                });
             });
+        }
+
+        function renderLists() {
+            const list = document.getElementById('media-list');
+            list.innerHTML = mediaItems.map((f, i) => `
+                <tr class="border-b border-[#bda06a]/30">
+                    <td class="p-3">${f.name}</td>
+                    <td class="p-3"><button onclick="player.src='${URL.createObjectURL(f)}'; player.play()" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
+                </tr>`).join('');
+            
+            const albumContainer = document.getElementById('view-albums');
+            albumContainer.innerHTML = Object.keys(albumCovers).map(a => `
+                <div class="p-3 border border-[#bda06a]/30 text-center">
+                    <img src="${albumCovers[a]}" class="grid-thumb">
+                    <p class="text-xs truncate mt-2">${a}</p>
+                </div>`).join('');
         }
 
         async function searchWiki() {
@@ -93,10 +110,12 @@
             res.innerHTML = "Recherche...";
             try {
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
-                const title = s.query.search[0].title;
-                const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`).then(r => r.json());
+                const t = s.query.search[0].title;
+                const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
+                const m = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${t}"&limit=8&fmt=json`).then(r => r.json());
                 
-                res.innerHTML = `<div class="parchment"><h3 class="text-xl text-[#bda06a]">${w.title}</h3><p>${w.extract}</p></div>`;
+                res.innerHTML = `<div class="parchment col-span-full"><h3 class="text-xl">${w.title}</h3><p>${w.extract}</p></div>` + 
+                    m.releases.map(r => `<div class="parchment p-2 text-center text-[10px]"><p class="font-bold">${r.title}</p></div>`).join('');
             } catch(e) { res.innerHTML = "Non trouvé."; }
         }
     </script>

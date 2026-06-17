@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Discothèque Privée</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
@@ -12,6 +11,10 @@
         .btn-luxe:active { background: #bda06a; color: black; }
         .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
         .btn-ctrl-luxe:active { background: #bda06a; color: black; transform: scale(0.95); }
+        
+        /* Style de l'étiquette de lecture */
+        .status-bar { border: 1px solid #bda06a; background: rgba(0,0,0,0.3); color: #d6c195; padding: 15px; border-radius: 5px; font-style: italic; margin-bottom: 20px; text-align: center; }
+        
         li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
     </style>
@@ -28,11 +31,11 @@
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-lg">
         
-        <div id="now-playing" class="mb-6 p-4 border border-[#bda06a] rounded bg-[#1a1612] text-[#d6c195] italic text-center">
-            Aucun morceau sélectionné
+        <div id="now-playing" class="status-bar">
+            Sélectionnez un morceau pour commencer
         </div>
 
-        <div class="flex gap-4 mb-6">
+        <div class="flex justify-center gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
             <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
             <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
@@ -53,6 +56,7 @@
         let currentTracks = [];
         let currentIndex = 0;
         const audio = document.getElementById('audio-player');
+        const display = document.getElementById('now-playing');
 
         function showPage(id) {
             document.getElementById('home-page').classList.add('hidden');
@@ -71,15 +75,23 @@
         }
 
         function playTrack(index) {
+            if (currentTracks.length === 0) return;
             currentIndex = index;
             const track = currentTracks[currentIndex];
-            document.getElementById('now-playing').innerText = "Lecture : " + track.name;
+            
+            // Mise à jour de l'affichage
+            display.innerText = "Lecture en cours : " + track.name;
+            
             audio.src = URL.createObjectURL(track);
             audio.play();
         }
 
         function togglePlay() {
-            audio.paused ? audio.play() : audio.pause();
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
         }
 
         function changeTrack(direction) {

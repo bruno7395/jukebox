@@ -5,190 +5,129 @@
     <title>Discothèque Privée</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:hover { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        .nav-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #bda06a; padding-bottom: 10px; margin-bottom: 20px; }
-        .tab-btn { color: #bda06a; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.9rem; opacity: 0.6; padding: 5px 15px; }
-        .tab-btn.active { opacity: 1; border-bottom: 2px solid #bda06a; color: white; }
-        .back-btn { color: #bda06a; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
-        .status-bar { border: 1px solid #bda06a; background: rgba(0,0,0,0.3); color: #d6c195; padding: 10px; border-radius: 5px; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; font-weight: bold; }
         .album-thumb { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bda06a; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
-        li { padding: 12px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
     </style>
 </head>
 <body class="p-6">
 
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
-        <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
-        <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
-        <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
+        <h1 class="text-4xl font-serif text-[#bda06a] mb-2">Discothèque</h1>
+        <h2 class="text-xl text-[#bda06a] mb-8 italic">Privée</h2>
+        <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition mb-4">1. Entrer dans le Cabinet</button>
+        <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Encyclopédie</button>
     </div>
 
-    <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <div class="nav-header">
-            <button onclick="showPage('home')" class="back-btn">← Accueil</button>
-            <div class="flex gap-4">
-                <button onclick="showView('tracks')" id="btn-tracks" class="tab-btn active">Morceaux</button>
-                <button onclick="showView('albums')" id="btn-albums" class="tab-btn">Albums</button>
-            </div>
+    <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl text-[#bda06a] font-serif">Ma Collection</h2>
+            <button onclick="showPage('home')" class="text-xs underline">Retour au Cabinet</button>
+        </div>
+        
+        <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
+            <i class="fa fa-folder-open mr-2"></i> Scanner mes dossiers (Audio uniquement)
+            <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
+        </label>
+        
+        <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
+            <div onclick="showView('tracks')" class="tab-btn active" id="btn-tracks">Morceaux</div>
+            <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
 
-        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-sm">
-        <div id="now-playing" class="status-bar">Aucun morceau sélectionné</div>
-
-        <div class="flex justify-center gap-4 mb-6">
-            <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
-            <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
-            <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
+        <div id="status" class="text-amber-500 mb-4 text-sm italic">Prêt.</div>
+        <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
+            <table class="w-full text-left"><tbody id="music-list-body"></tbody></table>
         </div>
-
-        <ul id="view-tracks" class="text-lg text-[#d6c195]"></ul>
-        <div id="view-albums" class="hidden grid grid-cols-3 md:grid-cols-5 gap-4 p-4"></div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
     </div>
 
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <div class="nav-header">
-            <button onclick="showPage('home')" class="back-btn">← Accueil</button>
-            <h2 class="text-xl text-[#bda06a] font-serif">Encyclopédie</h2>
-        </div>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Encyclopédie</h2>
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] border border-[#bda06a] p-2 text-[#d6c195] rounded" placeholder="Artiste...">
-            <button onclick="searchWiki()" class="btn-ctrl-luxe">Rechercher</button>
+            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Artiste...">
+            <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
+            <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
-    <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
 
     <script>
-        let currentTracks = [];
-        let currentIndex = 0;
+        let tracks = [];
         let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
-        const audio = document.getElementById('audio-player');
-        const display = document.getElementById('now-playing');
+        const audio = document.getElementById('audio');
 
-        function showPage(id) {
-            if (id !== 'wiki') { document.getElementById('wiki-results').innerHTML = ""; document.getElementById('wiki-query').value = ""; }
-            audio.pause(); 
+        function showPage(p) {
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
             document.getElementById('wiki-page').classList.add('hidden');
-            document.getElementById(id + '-page').classList.remove('hidden');
+            document.getElementById(p + '-page').classList.remove('hidden');
         }
 
-        function showView(v) {
-            document.getElementById('view-tracks').style.display = (v === 'tracks') ? 'block' : 'none';
-            document.getElementById('view-albums').style.display = (v === 'albums') ? 'grid' : 'none';
-            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
-            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
-        }
-
-        // --- MOTEUR JUKEBOX AMÉLIORÉ ---
-        function scanMusic(e) {
-            // FILTRE STRICT : On n'accepte QUE les extensions audio réelles
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
-            currentTracks = files.map(f => ({ 
-                file: f, 
-                name: f.name, 
-                artist: 'Artiste Inconnu', 
-                album: 'Album Inconnu', 
-                cover: null 
-            }));
-            renderAll();
-            processTags(0);
-        }
-
-        async function processTags(i) {
-            if (i >= currentTracks.length || !window.jsmediatags) return;
+        function importMusic(e) {
+            tracks = [];
+            // FILTRE RADICAL : On n'accepte que les fichiers audio
+            const audioExtensions = /\.(mp3|wav|m4a|flac|ogg)$/i;
+            const files = Array.from(e.target.files).filter(f => audioExtensions.test(f.name));
             
-            window.jsmediatags.read(currentTracks[i].file, {
-                onSuccess: async (t) => {
-                    // Récupération des tags avec fallback
-                    currentTracks[i].artist = t.tags.artist || 'Artiste Inconnu';
-                    currentTracks[i].album = t.tags.album || 'Album Inconnu';
-                    
+            document.getElementById('status').innerText = `Chargement de ${files.length} titres audio...`;
+            files.forEach(f => tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" }));
+            render(); processTags(0);
+        }
+
+        function processTags(i) {
+            if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
+            window.jsmediatags.read(tracks[i].file, {
+                onSuccess: (t) => {
+                    tracks[i].artist = t.tags.artist || "Inconnu";
+                    tracks[i].album = t.tags.album || "Album Inconnu";
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
-                        currentTracks[i].cover = b64;
-                        albumCovers[currentTracks[i].album] = b64;
+                        albumCovers[tracks[i].album] = b64;
                         localStorage.setItem('covers', JSON.stringify(albumCovers));
-                    } else if (albumCovers[currentTracks[i].album]) {
-                        currentTracks[i].cover = albumCovers[currentTracks[i].album];
-                    } else {
-                        currentTracks[i].cover = await fetchRemoteCover(currentTracks[i].artist, currentTracks[i].album);
                     }
-                    renderAll();
-                    processTags(i + 1);
+                    render(); processTags(i + 1);
                 },
                 onError: () => processTags(i + 1)
             });
         }
 
-        async function fetchRemoteCover(artist, album) {
-            if (album === 'Album Inconnu') return null;
-            try {
-                const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${artist}" AND release:"${album}"&limit=1&fmt=json`);
-                const data = await res.json();
-                if (data.releases && data.releases.length > 0) {
-                    const mbid = data.releases[0].id;
-                    return `https://coverartarchive.org/release/${mbid}/front`;
-                }
-            } catch (e) { return null; }
-            return null;
+        function render() {
+            document.getElementById('music-list-body').innerHTML = tracks.map((t, i) => `
+                <tr class="border-b border-[#bda06a]/20 hover:bg-[#bda06a]/10 transition"><td class="p-3">${t.title}</td><td class="p-3 text-stone-400">${t.artist}</td><td class="p-3"><button onclick="play(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+            
+            const albums = [...new Set(tracks.map(t => t.album))];
+            document.getElementById('view-albums').innerHTML = albums.map(a => `
+                <div class="p-3 rounded text-center border border-[#bda06a]/30">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="w-full aspect-square object-cover rounded mb-2 border border-[#bda06a]">` : `<div class="w-full aspect-square bg-black flex items-center justify-center rounded mb-2 border border-[#bda06a]"><i class="fa fa-record-vinyl text-4xl text-[#bda06a]"></i></div>`}
+                    <p class="text-[10px] font-bold truncate">${a}</p>
+                </div>`).join('');
         }
 
-        function renderAll() {
-            const list = document.getElementById('view-tracks');
-            list.innerHTML = currentTracks.map((t, i) => 
-                `<li onclick="playTrack(${i})">${t.cover ? `<img src="${t.cover}" class="album-thumb">` : `<div class="album-thumb bg-[#bda06a]/20 flex items-center justify-center text-[10px]">🎵</div>`} ${t.name}</li>`
-            ).join('');
+        function play(i) { audio.src = URL.createObjectURL(tracks[i].file); audio.play(); }
 
-            const albums = [...new Map(currentTracks.map(item => [item.album, item])).values()];
-            const grid = document.getElementById('view-albums');
-            grid.innerHTML = albums.map(a => `
-                <div class="text-center p-2 border border-[#bda06a]/30 rounded cursor-pointer" onclick="playAlbum('${a.album}')">
-                    ${a.cover ? `<img src="${a.cover}" class="grid-thumb">` : `<div class="grid-thumb bg-[#bda06a]/20 flex items-center justify-center text-[20px]">🎵</div>`}
-                    <p class="text-[10px] truncate mt-2">${a.album}</p>
-                </div>
-            `).join('');
+        function showView(v) {
+            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
-        
+
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
-            if(!q) return;
             const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
             const data = await res.json();
             document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="parchment p-3 text-center border border-[#bda06a]/30 rounded">
-                    <p class="text-sm font-bold text-white mb-1">${r.title}</p>
-                    <p class="text-[10px] text-[#bda06a]">${r['artist-credit'] ? r['artist-credit'][0].name : 'Inconnu'}</p>
-                </div>
-            `).join('');
-        }
-
-        function playAlbum(albumName) {
-            const index = currentTracks.findIndex(t => t.album === albumName);
-            if(index !== -1) playTrack(index);
-        }
-
-        function playTrack(index) {
-            currentIndex = index;
-            display.innerText = "Lecture : " + currentTracks[currentIndex].name;
-            audio.src = URL.createObjectURL(currentTracks[currentIndex].file);
-            audio.play();
-        }
-
-        function togglePlay() { audio.paused ? audio.play() : audio.pause(); }
-        function changeTrack(d) {
-            if (currentTracks.length === 0) return;
-            currentIndex = (currentIndex + d + currentTracks.length) % currentTracks.length;
-            playTrack(currentIndex);
+                <div class="parchment p-2 rounded text-center text-[10px] border-[#bda06a]">${r.title}</div>`).join('');
         }
     </script>
 </body>

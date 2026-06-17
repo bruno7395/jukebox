@@ -3,68 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <title>Mon Jukebox Personnel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Cormorant+Garamond:wght@400;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Georgia', serif; }
-        .parchment { 
-            background: radial-gradient(circle, #fbf7eb 0%, #f3e9cc 100%); 
-            padding: 2rem; border: 2px solid #bda06a; border-radius: 10px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            width: 90%; max-width: 500px; color: #444;
-        }
-        h1 { text-align: center; border-bottom: 1px solid #bda06a; padding-bottom: 10px; color: #333; }
-        button, .btn-file { 
-            display: block; width: 100%; padding: 12px; margin: 10px 0; 
-            background: rgba(189, 160, 106, 0.2); border: 1px solid #bda06a; 
-            color: #444; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: center;
-        }
-        button:hover, .btn-file:hover { background: #bda06a; color: white; }
+        body { background: #1a1a1a; font-family: 'Montserrat', sans-serif; }
+        .parchment { background: radial-gradient(circle, #fbf7eb 0%, #f3e9cc 100%); border: 2px solid #bda06a; border-radius: 1rem; padding: 2rem; }
         .hidden { display: none; }
-        #liste-musiques { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; font-size: 0.9rem; }
-        #liste-musiques li { padding: 5px; border-bottom: 1px solid #dcdcdc; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="page-home" class="parchment">
-        <h1>Discothèque Privée</h1>
-        <button onclick="showPage('jukebox')">Ouvrir mon Lecteur</button>
-        <button onclick="showPage('wiki')">Encyclopédie</button>
+    <div id="page-home" class="parchment w-full max-w-md shadow-2xl">
+        <h1 class="font-serif text-2xl text-center text-stone-800 mb-6">Discothèque Privée</h1>
+        <button onclick="showPage('jukebox')" class="w-full bg-white/50 border border-[#bda06a] p-4 rounded-lg flex items-center gap-4 hover:bg-white transition">
+            <i class="fa-solid fa-compact-disc text-amber-800 text-2xl"></i>
+            <div><div class="text-xs text-stone-500 uppercase">Médiathèque</div><div class="font-serif text-xl font-bold text-stone-800">Ouvrir mon Lecteur</div></div>
+        </button>
     </div>
 
-    <div id="page-jukebox" class="parchment hidden">
-        <h1>Médiathèque</h1>
-        <label class="btn-file">
-            Scanner un dossier
-            <input type="file" webkitdirectory directory multiple onchange="chargerFichiers(event)" style="display:none;">
+    <div id="page-jukebox" class="parchment w-full max-w-4xl hidden shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b border-[#bda06a]/50 pb-4">
+            <h2 class="font-serif text-3xl text-stone-800">Ma Médiathèque</h2>
+            <button onclick="showPage('home')" class="text-stone-600 hover:text-black"><i class="fa-solid fa-times"></i> Fermer</button>
+        </div>
+        
+        <label class="block w-full text-center py-3 bg-[#bda06a] text-white rounded cursor-pointer mb-6 font-bold uppercase tracking-widest text-sm">
+            <i class="fa-solid fa-folder-open"></i> Scanner le dossier
+            <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="hidden">
         </label>
-        <ul id="liste-musiques"></ul>
-        <button onclick="showPage('home')">Retour</button>
-    </div>
 
-    <div id="page-wiki" class="parchment hidden">
-        <h1>Encyclopédie</h1>
-        <p style="text-align: center;">Base MusicBrainz connectée.</p>
-        <button onclick="showPage('home')">Retour</button>
+        <div class="flex gap-4 mb-4">
+            <button onclick="setTab('tracks')" class="font-bold border-b-2 border-amber-900">Morceaux</button>
+            <button onclick="setTab('albums')" class="text-stone-500">Albums</button>
+        </div>
+
+        <div id="view-tracks" class="max-h-64 overflow-y-auto"><table class="w-full text-sm text-left" id="table-tracks"></table></div>
+        <div id="view-albums" class="hidden grid grid-cols-4 gap-4"></div>
     </div>
 
     <script>
+        let musicLibrary = [];
         function showPage(id) {
-            document.querySelectorAll('.parchment').forEach(c => c.classList.add('hidden'));
-            document.getElementById('page-' + id).classList.remove('hidden');
+            document.getElementById('page-home').classList.add('hidden');
+            document.getElementById('page-jukebox').classList.add('hidden');
+            document.getElementById('page-'+id).classList.remove('hidden');
         }
-
-        function chargerFichiers(event) {
-            const liste = document.getElementById('liste-musiques');
-            liste.innerHTML = "<li>Chargement...</li>";
-            const fichiers = event.target.files;
-            liste.innerHTML = ""; 
-            for (let i = 0; i < fichiers.length; i++) {
-                if (fichiers[i].type.startsWith('audio/')) {
-                    const li = document.createElement('li');
-                    li.textContent = "🎵 " + fichiers[i].name;
-                    liste.appendChild(li);
-                }
-            }
+        function setTab(tab) {
+            document.getElementById('view-tracks').classList.toggle('hidden', tab !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', tab !== 'albums');
+        }
+        function scanMusic(e) {
+            const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+            const table = document.getElementById('table-tracks');
+            table.innerHTML = "";
+            files.forEach(f => {
+                table.innerHTML += `<tr class="border-b"><td class="py-2">${f.name}</td></tr>`;
+            });
         }
     </script>
 </body>

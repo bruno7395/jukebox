@@ -16,16 +16,22 @@
 
     <div id="page-home" class="parchment w-full max-w-md shadow-2xl">
         <h1 class="font-serif text-2xl text-center text-stone-800 mb-6">Discothèque Privée</h1>
-        <button onclick="showPage('jukebox')" class="w-full bg-white/50 border border-[#bda06a] p-4 rounded-lg flex items-center gap-4 hover:bg-white transition">
-            <i class="fa-solid fa-compact-disc text-amber-800 text-2xl"></i>
-            <div><div class="text-xs text-stone-500 uppercase">Médiathèque</div><div class="font-serif text-xl font-bold text-stone-800">Ouvrir mon Lecteur</div></div>
-        </button>
+        <div class="space-y-4">
+            <button onclick="showPage('jukebox')" class="w-full bg-white/50 border border-[#bda06a] p-4 rounded-lg flex items-center gap-4 hover:bg-white transition">
+                <i class="fa-solid fa-compact-disc text-amber-800 text-2xl"></i>
+                <div><div class="text-xs text-stone-500 uppercase">Médiathèque</div><div class="font-serif text-xl font-bold text-stone-800">Ouvrir mon Lecteur</div></div>
+            </button>
+            <button onclick="showPage('wiki')" class="w-full bg-white/50 border border-[#bda06a] p-4 rounded-lg flex items-center gap-4 hover:bg-white transition">
+                <i class="fa-solid fa-earth-europe text-amber-800 text-2xl"></i>
+                <div><div class="text-xs text-stone-500 uppercase">Encyclopédie</div><div class="font-serif text-xl font-bold text-stone-800">Base MusicBrainz</div></div>
+            </button>
+        </div>
     </div>
 
     <div id="page-jukebox" class="parchment w-full max-w-4xl hidden shadow-2xl">
         <div class="flex justify-between items-center mb-6 border-b border-[#bda06a]/50 pb-4">
             <h2 class="font-serif text-3xl text-stone-800">Ma Médiathèque</h2>
-            <button onclick="showPage('home')" class="text-stone-600 hover:text-black"><i class="fa-solid fa-times"></i> Fermer</button>
+            <button onclick="showPage('home')" class="text-stone-600 hover:text-black">Retour</button>
         </div>
         
         <label class="block w-full text-center py-3 bg-[#bda06a] text-white rounded cursor-pointer mb-6 font-bold uppercase tracking-widest text-sm">
@@ -37,16 +43,19 @@
             <button onclick="setTab('tracks')" class="font-bold border-b-2 border-amber-900">Morceaux</button>
             <button onclick="setTab('albums')" class="text-stone-500">Albums</button>
         </div>
+        <div id="view-tracks" class="max-h-64 overflow-y-auto"><table class="w-full text-sm" id="table-tracks"></table></div>
+        <div id="view-albums" class="hidden"></div>
+    </div>
 
-        <div id="view-tracks" class="max-h-64 overflow-y-auto"><table class="w-full text-sm text-left" id="table-tracks"></table></div>
-        <div id="view-albums" class="hidden grid grid-cols-4 gap-4"></div>
+    <div id="page-wiki" class="parchment w-full max-w-md hidden shadow-2xl">
+        <h2 class="font-serif text-2xl text-stone-800 mb-6">Encyclopédie</h2>
+        <p class="text-stone-700 mb-6">Base MusicBrainz connectée pour explorer vos artistes.</p>
+        <button onclick="showPage('home')" class="w-full bg-stone-800 text-white p-3 rounded">Retour</button>
     </div>
 
     <script>
-        let musicLibrary = [];
         function showPage(id) {
-            document.getElementById('page-home').classList.add('hidden');
-            document.getElementById('page-jukebox').classList.add('hidden');
+            ['page-home', 'page-jukebox', 'page-wiki'].forEach(p => document.getElementById(p).classList.add('hidden'));
             document.getElementById('page-'+id).classList.remove('hidden');
         }
         function setTab(tab) {
@@ -54,11 +63,10 @@
             document.getElementById('view-albums').classList.toggle('hidden', tab !== 'albums');
         }
         function scanMusic(e) {
-            const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
             const table = document.getElementById('table-tracks');
             table.innerHTML = "";
-            files.forEach(f => {
-                table.innerHTML += `<tr class="border-b"><td class="py-2">${f.name}</td></tr>`;
+            Array.from(e.target.files).filter(f => f.type.startsWith('audio/')).forEach(f => {
+                table.innerHTML += `<tr class="border-b"><td class="py-2">🎵 ${f.name}</td></tr>`;
             });
         }
     </script>

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Édition Stable 10.3</title>
+    <title>Discothèque Privée - Version Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -10,12 +10,9 @@
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
-        .btn-luxe:hover { background: #bda06a; color: black; }
         .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-weight: bold; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
-        .player-btn { background: #8b5a2b; border: 1px solid #bda06a; color: white; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
-        .player-btn:hover { background: #bda06a; color: black; }
     </style>
 </head>
 <body class="p-6">
@@ -29,11 +26,11 @@
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl text-[#bda06a] font-serif">Médiathèque</h2>
-            <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour au Cabinet</button>
+            <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour</button>
         </div>
         
         <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
-            <i class="fa fa-folder-open mr-2"></i> Scanner Musique & Clips
+            <i class="fa fa-folder-open mr-2"></i> Scanner dossiers
             <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMedia(event)">
         </label>
         
@@ -59,28 +56,26 @@
     </div>
 
     <div id="player-container" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4 rounded hidden border-2 border-[#bda06a] z-50">
-        <audio id="audio-engine" class="hidden"></audio>
-        <video id="video-engine" class="hidden w-full max-h-40 mb-2 border border-[#bda06a]"></video>
-        <div id="status-bar" class="text-[#bda06a] text-sm mb-2 font-bold italic">Prêt.</div>
-        <div class="flex gap-4">
-            <button onclick="playMedia()" class="player-btn"><i class="fa fa-play"></i> Play</button>
-            <button onclick="pauseMedia()" class="player-btn"><i class="fa fa-pause"></i> Pause</button>
-            <button onclick="stopMedia()" class="player-btn"><i class="fa fa-stop"></i> Stop</button>
-        </div>
+        <audio id="audio-engine" controls class="w-full"></audio>
+        <div id="status-bar" class="text-[#bda06a] text-xs mt-2">Prêt.</div>
     </div>
 
     <script>
         let mediaItems = [];
         let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
-        let currentEngine = null;
 
         function showPage(p) {
-            if (p !== 'jukebox') stopMedia();
-            if (p !== 'wiki') { document.getElementById('wiki-results').innerHTML = ""; document.getElementById('wiki-query').value = ""; }
             document.getElementById('home-page').classList.toggle('hidden', p !== 'home');
             document.getElementById('jukebox-page').classList.toggle('hidden', p !== 'jukebox');
             document.getElementById('wiki-page').classList.toggle('hidden', p !== 'wiki');
             document.getElementById('player-container').classList.toggle('hidden', p !== 'jukebox');
+            
+            // Si on quitte le jukebox, on arrête la musique
+            if(p !== 'jukebox') {
+                const audio = document.getElementById('audio-engine');
+                audio.pause();
+                audio.src = "";
+            }
         }
 
         function showView(v) {
@@ -91,8 +86,8 @@
         }
 
         function importMedia(e) {
-            mediaItems = Array.from(e.target.files).filter(f => /\.(mp3|wav|m4a|flac|ogg|aac|wma|mp4|webm)$/i.test(f.name));
-            render(); 
+            mediaItems = Array.from(e.target.files).filter(f => /\.(mp3|wav|m4a|flac|ogg|aac|wma)$/i.test(f.name));
+            render();
             processTags(0);
         }
 
@@ -114,10 +109,8 @@
 
         function render() {
             document.getElementById('media-list-body').innerHTML = mediaItems.map((m, i) => `
-                <tr class="border-b border-[#bda06a]/20">
-                    <td class="p-3 text-[#d6c195]">${m.name}</td>
-                    <td class="p-3"><button onclick="loadAndPlay(${i})" class="text-[#bda06a] hover:text-white"><i class="fa fa-play"></i></button></td>
-                </tr>`).join('');
+                <tr class="border-b border-[#bda06a]/20"><td class="p-3">${m.name}</td>
+                <td class="p-3"><button onclick="loadAndPlay(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
             
             const albums = [...new Set(mediaItems.map(m => m.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
@@ -128,38 +121,10 @@
         }
 
         function loadAndPlay(i) {
-            const file = mediaItems[i].file;
-            const url = URL.createObjectURL(file);
             const audio = document.getElementById('audio-engine');
-            const video = document.getElementById('video-engine');
-            const isVideo = file.name.match(/\.(mp4|webm)$/i);
-            
-            stopMedia();
-            
-            if(isVideo) {
-                audio.classList.add('hidden');
-                video.classList.remove('hidden');
-                video.src = url;
-                currentEngine = video;
-            } else {
-                video.classList.add('hidden');
-                audio.classList.remove('hidden');
-                audio.src = url;
-                currentEngine = audio;
-            }
-            document.getElementById('status-bar').innerText = "Lecture : " + file.name;
-            currentEngine.play();
-        }
-
-        function playMedia() { if(currentEngine) currentEngine.play(); }
-        function pauseMedia() { if(currentEngine) currentEngine.pause(); }
-        function stopMedia() { 
-            if(currentEngine) { 
-                currentEngine.pause(); 
-                currentEngine.currentTime = 0; 
-                currentEngine.src = ""; 
-                document.getElementById('status-bar').innerText = "Arrêté.";
-            } 
+            audio.src = URL.createObjectURL(mediaItems[i].file);
+            audio.play();
+            document.getElementById('status-bar').innerText = "Lecture : " + mediaItems[i].name;
         }
 
         async function searchWiki() {
@@ -171,12 +136,7 @@
                 const searchRes = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const bestTitle = searchRes.query.search[0].title;
                 const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`).then(r => r.json());
-                const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${bestTitle}"&limit=12&fmt=json`).then(r => r.json());
-                res.innerHTML = `
-                    <div class="p-4 parchment mb-4"><h3 class="text-xl text-[#bda06a]">${wiki.title}</h3><p class="text-sm">${wiki.extract}</p></div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        ${mb.releases.map(r => `<div class="parchment p-2 text-center text-[10px]"><p class="font-bold">${r.title}</p></div>`).join('')}
-                    </div>`;
+                res.innerHTML = `<div class="p-4 parchment"><h3 class="text-xl text-[#bda06a]">${wiki.title}</h3><p class="text-sm">${wiki.extract}</p></div>`;
             } catch(e) { res.innerHTML = "Non trouvé."; }
         }
     </script>

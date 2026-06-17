@@ -11,12 +11,11 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:hover { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-weight: bold; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .album-thumb { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bda06a; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
-        .wiki-bio { border-bottom: 2px solid #bda06a; padding-bottom: 15px; margin-bottom: 15px; }
+        .wiki-card { background: #1a1612; border: 1px solid #bda06a; padding: 10px; text-align: center; }
     </style>
 </head>
 <body class="p-6">
@@ -31,7 +30,7 @@
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl text-[#bda06a] font-serif">Ma Collection</h2>
-            <button onclick="showPage('home')" class="text-xs underline">Retour au Cabinet</button>
+            <button onclick="showPage('home')" class="text-xs underline">Retour</button>
         </div>
         
         <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
@@ -58,7 +57,7 @@
             <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
             <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
         </div>
-        <div id="wiki-results"></div>
+        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
@@ -69,6 +68,12 @@
         const audio = document.getElementById('audio');
 
         function showPage(p) {
+            // NETTOYAGE MÉMOIRE : On vide tout quand on change de page
+            if (p !== 'wiki') {
+                document.getElementById('wiki-query').value = "";
+                document.getElementById('wiki-results').innerHTML = "";
+            }
+            
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
             document.getElementById('wiki-page').classList.add('hidden');
@@ -77,17 +82,18 @@
 
         function importMusic(e) {
             tracks = [];
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
+            const audioExtensions = /\.(mp3|wav|m4a|flac|ogg)$/i;
+            const files = Array.from(e.target.files).filter(f => audioExtensions.test(f.name));
             files.forEach(f => tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" }));
             render(); processTags(0);
         }
 
-        async function processTags(i) {
+        function processTags(i) {
             if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
             window.jsmediatags.read(tracks[i].file, {
-                onSuccess: async (t) => {
+                onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
-                    tracks[i].album = t.tags.album || "Album Inconnu";
+                    tracks[i].album = t.tags.album || "Inconnu";
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         albumCovers[tracks[i].album] = b64;
@@ -122,28 +128,15 @@
 
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
-            const res = document.getElementById('wiki-results');
-            res.innerHTML = "Recherche en cours...";
+            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
+            const data = await res.json();
             
-            // 1. Wikipedia Bio
-            const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
-            // 2. MusicBrainz Discographie
-            const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`).then(r => r.json());
-            
-            res.innerHTML = `
-                <div class="wiki-bio">
-                    <h3 class="text-xl text-[#bda06a] mb-2">${wiki.title || 'Artiste'}</h3>
-                    <p class="text-sm">${wiki.extract || "Pas de biographie disponible."}</p>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    ${mb.releases.map(r => `
-                        <div class="parchment p-2 text-center text-[10px]">
-                            <p class="font-bold">${r.title}</p>
-                            <p>${r.date ? r.date.split('-')[0] : ''}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
+                <div class="wiki-card rounded border border-[#bda06a]">
+                    <img src="https://coverartarchive.org/release/${r.id}/front" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" class="w-full aspect-square object-cover">
+                    <div class="hidden w-full aspect-square bg-black items-center justify-center"><i class="fa fa-record-vinyl text-3xl text-[#bda06a]"></i></div>
+                    <p class="p-2 text-[10px] font-bold truncate">${r.title}</p>
+                </div>`).join('');
         }
     </script>
 </body>

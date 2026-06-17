@@ -15,7 +15,7 @@
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .album-thumb { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bda06a; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
-        .wiki-card { background: #1a1612; border: 1px solid #bda06a; padding: 10px; text-align: center; }
+        .wiki-bio { border-bottom: 2px solid #bda06a; padding-bottom: 20px; margin-bottom: 20px; }
     </style>
 </head>
 <body class="p-6">
@@ -30,7 +30,7 @@
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl text-[#bda06a] font-serif">Ma Collection</h2>
-            <button onclick="showPage('home')" class="text-xs underline">Retour</button>
+            <button onclick="showPage('home')" class="text-xs underline">Retour au Cabinet</button>
         </div>
         
         <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
@@ -57,10 +57,10 @@
             <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
             <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
         </div>
-        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div id="wiki-results"></div>
     </div>
 
-    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
+    <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded hidden"></audio>
 
     <script>
         let tracks = [];
@@ -68,11 +68,12 @@
         const audio = document.getElementById('audio');
 
         function showPage(p) {
-            // NETTOYAGE MÉMOIRE : On vide tout quand on change de page
-            if (p !== 'wiki') {
-                document.getElementById('wiki-query').value = "";
-                document.getElementById('wiki-results').innerHTML = "";
-            }
+            // NETTOYAGE MÉMOIRE
+            document.getElementById('wiki-results').innerHTML = "";
+            document.getElementById('wiki-query').value = "";
+            
+            // Gestion visibilité lecteur : on ne l'affiche QUE dans le jukebox
+            audio.classList.toggle('hidden', p !== 'jukebox');
             
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
@@ -93,7 +94,7 @@
             window.jsmediatags.read(tracks[i].file, {
                 onSuccess: (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
-                    tracks[i].album = t.tags.album || "Inconnu";
+                    tracks[i].album = t.tags.album || "Album Inconnu";
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         albumCovers[tracks[i].album] = b64;
@@ -117,7 +118,10 @@
                 </div>`).join('');
         }
 
-        function play(i) { audio.src = URL.createObjectURL(tracks[i].file); audio.play(); }
+        function play(i) { 
+            audio.src = URL.createObjectURL(tracks[i].file); 
+            audio.play(); 
+        }
 
         function showView(v) {
             document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
@@ -128,15 +132,29 @@
 
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
-            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
-            const data = await res.json();
+            const resContainer = document.getElementById('wiki-results');
+            resContainer.innerHTML = "Recherche en cours...";
             
-            document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="wiki-card rounded border border-[#bda06a]">
-                    <img src="https://coverartarchive.org/release/${r.id}/front" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" class="w-full aspect-square object-cover">
-                    <div class="hidden w-full aspect-square bg-black items-center justify-center"><i class="fa fa-record-vinyl text-3xl text-[#bda06a]"></i></div>
-                    <p class="p-2 text-[10px] font-bold truncate">${r.title}</p>
-                </div>`).join('');
+            try {
+                const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
+                const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`).then(r => r.json());
+                
+                resContainer.innerHTML = `
+                    <div class="wiki-bio p-4 parchment">
+                        <h3 class="text-xl text-[#bda06a] mb-2">${wiki.title || q}</h3>
+                        <p class="text-sm">${wiki.extract || "Pas de biographie disponible."}</p>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${mb.releases.map(r => `
+                            <div class="parchment p-2 text-center">
+                                <img src="https://coverartarchive.org/release/${r.id}/front" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" class="w-full aspect-square object-cover mb-2 border border-[#bda06a]">
+                                <div class="hidden w-full aspect-square bg-black items-center justify-center mb-2 border border-[#bda06a]"><i class="fa fa-record-vinyl text-3xl text-[#bda06a]"></i></div>
+                                <p class="text-[10px] font-bold truncate">${r.title}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch(e) { resContainer.innerHTML = "Erreur lors de la recherche."; }
         }
     </script>
 </body>

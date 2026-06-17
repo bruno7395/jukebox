@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Version 10.5</title>
+    <title>Discothèque Privée - Version Ultime</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,21 +15,20 @@
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
         .player-btn { background: #8b5a2b; border: 1px solid #bda06a; color: white; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
-        .player-btn:hover { background: #bda06a; color: black; }
     </style>
 </head>
 <body class="p-6">
 
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
-        <button onclick="showPage('jukebox')" class="btn-luxe mb-4">1. Entrer dans le Cabinet</button>
-        <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
+        <button onclick="nav('jukebox')" class="btn-luxe mb-4">1. Entrer dans le Cabinet</button>
+        <button onclick="nav('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
 
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl text-[#bda06a] font-serif">Médiathèque</h2>
-            <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour</button>
+            <button onclick="nav('home')" class="text-xs underline text-[#bda06a]">Retour</button>
         </div>
         
         <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
@@ -53,18 +52,18 @@
         <div class="flex gap-2 mb-6">
             <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Artiste...">
             <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
-            <button onclick="showPage('home')" class="border px-4 py-2 rounded text-[#bda06a]">Retour</button>
+            <button onclick="nav('home')" class="border px-4 py-2 rounded text-[#bda06a]">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <div id="player-container" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4 rounded hidden border-2 border-[#bda06a] z-50">
-        <audio id="audio-engine" class="hidden"></audio>
-        <div id="status-bar" class="text-[#bda06a] text-sm mb-2 font-bold italic">En attente...</div>
+        <audio id="audio-engine"></audio>
+        <div id="status-bar" class="text-[#bda06a] text-sm mb-2 font-bold italic">Prêt.</div>
         <div class="flex gap-4">
-            <button onclick="playMedia()" class="player-btn"><i class="fa fa-play"></i></button>
-            <button onclick="pauseMedia()" class="player-btn"><i class="fa fa-pause"></i></button>
-            <button onclick="stopMedia()" class="player-btn"><i class="fa fa-stop"></i></button>
+            <button onclick="audio.play()" class="player-btn"><i class="fa fa-play"></i></button>
+            <button onclick="audio.pause()" class="player-btn"><i class="fa fa-pause"></i></button>
+            <button onclick="audio.pause(); audio.currentTime=0;" class="player-btn"><i class="fa fa-stop"></i></button>
         </div>
     </div>
 
@@ -73,20 +72,59 @@
         let albumCovers = JSON.parse(localStorage.getItem('covers')) || {};
         const audio = document.getElementById('audio-engine');
 
-        function showPage(p) {
-            if (p !== 'jukebox') stopMedia();
-            if (p !== 'wiki') { document.getElementById('wiki-results').innerHTML = ""; document.getElementById('wiki-query').value = ""; }
-            document.getElementById('home-page').classList.toggle('hidden', p !== 'home');
-            document.getElementById('jukebox-page').classList.toggle('hidden', p !== 'jukebox');
-            document.getElementById('wiki-page').classList.toggle('hidden', p !== 'wiki');
-            document.getElementById('player-container').classList.toggle('hidden', p !== 'jukebox');
+        // Navigation simplifiée
+        function nav(p) {
+            document.getElementById('home-page').style.display = (p === 'home') ? 'block' : 'none';
+            document.getElementById('jukebox-page').style.display = (p === 'jukebox') ? 'block' : 'none';
+            document.getElementById('wiki-page').style.display = (p === 'wiki') ? 'block' : 'none';
+            document.getElementById('player-container').style.display = (p === 'jukebox') ? 'block' : 'none';
+            if(p !== 'jukebox') audio.pause();
         }
 
         function showView(v) {
-            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
-            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
-            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
-            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
+            document.getElementById('view-tracks').style.display = (v === 'tracks') ? 'block' : 'none';
+            document.getElementById('view-albums').style.display = (v === 'albums') ? 'grid' : 'none';
         }
 
-        function importMedia(e
+        function importMedia(e) {
+            mediaItems = Array.from(e.target.files).filter(f => /\.(mp3|wav|m4a|flac|ogg|aac|wma)$/i.test(f.name));
+            render(); processTags(0);
+        }
+
+        function processTags(i) {
+            if (i >= mediaItems.length) return;
+            window.jsmediatags.read(mediaItems[i].file, {
+                onSuccess: (t) => {
+                    mediaItems[i].album = t.tags.album || "Inconnu";
+                    if (t.tags.picture) {
+                        const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                        albumCovers[mediaItems[i].album] = b64;
+                        localStorage.setItem('covers', JSON.stringify(albumCovers));
+                    }
+                    render(); processTags(i + 1);
+                },
+                onError: () => processTags(i + 1)
+            });
+        }
+
+        function render() {
+            document.getElementById('media-list-body').innerHTML = mediaItems.map((m, i) => `
+                <tr class="border-b border-[#bda06a]/20"><td class="p-3 text-[#d6c195]">${m.name}</td>
+                <td class="p-3"><button onclick="audio.src=URL.createObjectURL(mediaItems[${i}].file); audio.play(); document.getElementById('status-bar').innerText='Lecture: ${m.name}'" class="text-[#bda06a] hover:text-white"><i class="fa fa-play"></i></button></td></tr>`).join('');
+            
+            const albums = [...new Set(mediaItems.map(m => m.album))];
+            document.getElementById('view-albums').innerHTML = albums.map(a => `
+                <div class="p-3 rounded text-center border border-[#bda06a]/30">
+                    ${albumCovers[a] ? `<img src="${albumCovers[a]}" class="grid-thumb">` : `<div class="grid-thumb bg-black flex items-center justify-center"><i class="fa fa-record-vinyl text-4xl text-[#bda06a]"></i></div>`}
+                    <p class="text-[10px] font-bold truncate mt-2">${a}</p>
+                </div>`).join('');
+        }
+
+        async function searchWiki() {
+            const q = document.getElementById('wiki-query').value;
+            const res = document.getElementById('wiki-results');
+            res.innerHTML = "Recherche...";
+            try {
+                const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
+                const t = s.query.search[0].title;
+                const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());

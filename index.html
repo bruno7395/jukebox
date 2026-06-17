@@ -10,30 +10,28 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:active { background: #bda06a; color: black; }
-        /* Boutons avec zone de clic large */
-        .btn-ctrl-luxe { 
-            background: #8b5a2b; border: 2px solid #bda06a; color: white; 
-            padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem;
-            transition: transform 0.1s, background 0.1s;
-        }
+        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
         .btn-ctrl-luxe:active { background: #bda06a; color: black; transform: scale(0.95); }
-        li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; }
+        li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; }
+        li:hover { background: #bda06a/20; color: white; }
     </style>
 </head>
 <body class="p-6">
 
-    <!-- PAGE ACCUEIL -->
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
         <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
 
-    <!-- PAGE JUKEBOX -->
     <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-lg">
         
+        <div id="now-playing" class="mb-6 p-4 border border-[#bda06a] rounded bg-[#1a1612] text-[#d6c195] italic text-center">
+            Aucun morceau sélectionné
+        </div>
+
         <div class="flex gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
             <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
@@ -44,7 +42,6 @@
         <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
-    <!-- PAGE WIKI -->
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
         <button onclick="showPage('home')" class="text-lg underline text-[#bda06a]">Retour Accueil</button>
@@ -55,7 +52,7 @@
     <script>
         let currentTracks = [];
         let currentIndex = 0;
-        const audio = document.getElementById('audio-player');
+        const audio = document.getElementById8('audio-player');
 
         function showPage(id) {
             document.getElementById('home-page').classList.add('hidden');
@@ -69,13 +66,15 @@
             list.innerHTML = "";
             currentTracks = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
             currentTracks.forEach((f, i) => {
-                list.innerHTML += `<li class="cursor-pointer active:bg-[#bda06a]/30" onclick="playTrack(${i})">🎵 ${f.name}</li>`;
+                list.innerHTML += `<li onclick="playTrack(${i})">🎵 ${f.name}</li>`;
             });
         }
 
         function playTrack(index) {
             currentIndex = index;
-            audio.src = URL.createObjectURL(currentTracks[currentIndex]);
+            const track = currentTracks[currentIndex];
+            document.getElementById('now-playing').innerText = "Lecture : " + track.name;
+            audio.src = URL.createObjectURL(track);
             audio.play();
         }
 

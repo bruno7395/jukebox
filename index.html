@@ -69,7 +69,6 @@
         const audio = document.getElementById('audio');
 
         function showPage(p) {
-            // Nettoyage complet
             if (p !== 'wiki') {
                 document.getElementById('wiki-results').innerHTML = "";
                 document.getElementById('wiki-query').value = "";
@@ -132,21 +131,24 @@
             resContainer.innerHTML = "Recherche en cours...";
             
             try {
-                // Recherche intelligente : Titre exact, puis majuscule, puis le reste
-                let wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
+                // ÉTAPE 1 : Chercher le nom de page correct
+                const searchRes = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 
-                // Fallback si rien trouvé (try title case)
-                if(wiki.type === "disambiguation" || !wiki.extract) {
-                     const capitalQ = q.charAt(0).toUpperCase() + q.slice(1);
-                     wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(capitalQ)}`).then(r => r.json());
+                if (searchRes.query.search.length === 0) {
+                    resContainer.innerHTML = "Aucun artiste trouvé.";
+                    return;
                 }
-
-                const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`).then(r => r.json());
+                
+                const bestTitle = searchRes.query.search[0].title;
+                
+                // ÉTAPE 2 : Chercher le résumé avec le nom trouvé
+                const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`).then(r => r.json());
+                const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${bestTitle}"&limit=12&fmt=json`).then(r => r.json());
                 
                 resContainer.innerHTML = `
                     <div class="wiki-bio p-4 parchment">
-                        <h3 class="text-xl text-[#bda06a] mb-2">${wiki.title || q}</h3>
-                        <p class="text-sm">${wiki.extract || "Pas de biographie trouvée pour cet artiste."}</p>
+                        <h3 class="text-xl text-[#bda06a] mb-2">${wiki.title}</h3>
+                        <p class="text-sm">${wiki.extract || "Pas de biographie disponible."}</p>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${mb.releases.map(r => `

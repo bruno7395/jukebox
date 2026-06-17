@@ -26,3 +26,50 @@
         <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
         <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
+
+    <!-- PAGE JUKEBOX -->
+    <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
+        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a]">
+        
+        <div class="flex gap-4 mb-6">
+            <button class="btn-ctrl-luxe" onclick="console.log('Précédent')">⏮️</button>
+            <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
+            <button class="btn-ctrl-luxe" onclick="console.log('Suivant')">⏭️</button>
+        </div>
+
+        <ul id="liste-musiques" class="text-sm text-[#d6c195]"></ul>
+        <button onclick="showPage('home')" class="mt-6 text-xs underline text-[#bda06a]">Retour Accueil</button>
+    </div>
+
+    <!-- PAGE WIKI -->
+    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
+        <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour Accueil</button>
+    </div>
+
+    <audio id="audio-player" class="hidden"></audio>
+
+    <script>
+        function showPage(id) {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('jukebox-page').classList.add('hidden');
+            document.getElementById('wiki-page').classList.add('hidden');
+            document.getElementById(id + '-page').classList.remove('hidden');
+        }
+
+        function scanMusic(e) {
+            const list = document.getElementById('liste-musiques');
+            list.innerHTML = "";
+            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i)).forEach((f) => {
+                list.innerHTML += `<li class="cursor-pointer hover:text-white p-1 border-b border-[#bda06a]/30">🎵 ${f.name}</li>`;
+            });
+        }
+
+        function togglePlay() {
+            const audio = document.getElementById('audio-player');
+            audio.paused ? audio.play() : audio.pause();
+        }
+    </script>
+</body>
+</html>

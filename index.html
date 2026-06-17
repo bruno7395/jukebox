@@ -4,57 +4,36 @@
     <meta charset="UTF-8">
     <title>Mon Jukebox Personnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .font-title { font-family: 'Cinzel', serif; }
-        .font-serif-classic { font-family: 'Cormorant Garamond', serif; }
-        .font-sans-clean { font-family: 'Montserrat', sans-serif; }
-        body { background-image: linear-gradient(rgba(15, 10, 5, 0.45), rgba(15, 10, 5, 0.45)), url('fond.jpg.png'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; padding-bottom: 90px; }
-        .parchment { background: radial-gradient(circle, #fbf7eb 0%, #f3e9cc 100%); border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); position: relative; }
-        .glass-panel { background: rgba(20, 15, 10, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(189, 160, 106, 0.25); }
-        .wmp-tab-btn.active { background-color: #bda06a; color: #0c0a09; font-weight: 700; }
+        body { background-color: #0c0a09; color: white; }
     </style>
 </head>
-<body class="font-sans-clean text-stone-100">
-    <header class="p-6 flex justify-between items-center z-10">
-        <button onclick="retourAccueil()" class="flex items-center gap-3 text-[#bda06a] hover:text-[#e5c185]"><i class="fa-solid fa-music"></i> <span class="font-title uppercase">Espace Musique</span></button>
-    </header>
-    <main class="flex items-center justify-center min-h-[80vh] p-4">
-        <div id="page-home" class="w-full max-w-lg">
-            <div class="parchment p-10 rounded-2xl text-stone-900">
-                <h1 class="font-title text-3xl text-center mb-8 border-b border-[#bda06a]/40 pb-3">Discothèque Privée</h1>
-                <div class="space-y-4">
-                    <button onclick="showPage('jukebox')" class="w-full bg-white/80 border border-[#bda06a] rounded-xl p-4 flex items-center gap-4 hover:bg-white transition"><i class="fa-solid fa-compact-disc text-amber-800 text-2xl"></i><div><div class="text-xs uppercase">Médiathèque</div><div class="font-serif-classic text-xl font-bold">Ouvrir mon Lecteur</div></div></button>
-                    <button onclick="showPage('wiki')" class="w-full bg-white/80 border border-[#bda06a] rounded-xl p-4 flex items-center gap-4 hover:bg-white transition"><i class="fa-solid fa-earth-europe text-amber-800 text-2xl"></i><div><div class="text-xs uppercase">Encyclopédie</div><div class="font-serif-classic text-xl font-bold">Base MusicBrainz</div></div></button>
-                </div>
-            </div>
-        </div>
-        <div id="page-jukebox" class="hidden w-full max-w-6xl">
-            <div class="glass-panel rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-4 border-b border-[#bda06a]/20 pb-4">
-                    <h2 class="font-title text-3xl">Ma Médiathèque</h2>
-                    <div class="flex gap-2">
-                        <label class="bg-amber-700 text-white px-4 py-2 rounded cursor-pointer font-title text-xs uppercase"><i class="fa-solid fa-folder-open"></i> Scanner <input type="file" id="scan-music" webkitdirectory directory multiple class="hidden" onchange="importLocalMusic(event)"></label>
-                        <button onclick="handleJukeboxReturn()" class="border border-[#bda06a] text-[#bda06a] px-4 py-2 rounded font-title text-xs uppercase">Retour</button>
-                    </div>
-                </div>
-                <div id="wmp-view-tracks" class="max-h-[50vh] overflow-y-auto"><table class="w-full text-left text-sm"><tbody id="music-list-body"></tbody></table></div>
-            </div>
-        </div>
-    </main>
-    <audio id="main-audio-element"></audio>
+<body>
+    <div id="page-home">
+        <h1>Mon Jukebox</h1>
+        <button onclick="showPage('jukebox')">Ouvrir mon Lecteur</button>
+        <button onclick="showPage('wiki')">Encyclopédie</button>
+    </div>
+
+    <div id="page-jukebox" class="hidden">
+        <h2>Médiathèque</h2>
+        <button onclick="showPage('home')">Retour</button>
+    </div>
+
+    <div id="page-wiki" class="hidden">
+        <h2>Encyclopédie</h2>
+        <button onclick="showPage('home')">Retour</button>
+    </div>
+
     <script>
         function showPage(pageId) {
+            // On cache tout
             document.getElementById('page-home').classList.add('hidden');
             document.getElementById('page-jukebox').classList.add('hidden');
             document.getElementById('page-wiki').classList.add('hidden');
-            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            // On affiche la cible demandée
+            document.getElementById('page-' + pageId).classList.remove('hidden');
         }
-        function retourAccueil() { showPage('home'); }
-        function handleJukeboxReturn() { retourAccueil(); }
-        // (Logique de scan et lecteur à réintégrer ici si besoin)
     </script>
 </body>
 </html>

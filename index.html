@@ -4,63 +4,25 @@
     <meta charset="UTF-8">
     <title>Discothèque Privée</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Le style Luxe que tu exiges */
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .btn-menu { background: #26211c; border: 1px solid #bda06a; color: #d6c195; padding: 15px; margin: 10px 0; width: 100%; border-radius: 4px; cursor: pointer; text-align: left; transition: 0.3s; }
-        .btn-menu:hover { background: #bda06a; color: black; }
-        .btn-ctrl { background: #8b5a2b; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-luxe { 
+            background: #26211c; border: 2px solid #bda06a; color: #d6c195; 
+            padding: 15px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer;
+        }
+        .btn-luxe:hover { background: #bda06a; color: black; }
+        .btn-ctrl-luxe { 
+            background: #8b5a2b; border: 1px solid #bda06a; color: white; 
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; 
+        }
     </style>
 </head>
 <body class="p-6">
-
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
-        <h1 class="text-3xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
-        <button onclick="showPage('jukebox')" class="btn-menu">1. Lecteur Jukebox Local</button>
-        <button onclick="showPage('wiki')" class="btn-menu">2. Explorateur de Discographies</button>
+        <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
+        <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
+        <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
-
-    <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-xl text-[#bda06a] mb-4">Médiathèque</h2>
-        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-4">
-        
-        <div class="flex gap-4 mb-6">
-            <button class="btn-ctrl" onclick="console.log('Précédent')">⏮️</button>
-            <button class="btn-ctrl" onclick="togglePlay()">⏯️</button>
-            <button class="btn-ctrl" onclick="console.log('Suivant')">⏭️</button>
-        </div>
-
-        <ul id="liste-musiques" class="text-sm"></ul>
-        <button onclick="showPage('home')" class="mt-6 text-xs underline">Retour Accueil</button>
-    </div>
-
-    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-xl text-[#bda06a] mb-4">Encyclopédie</h2>
-        <button onclick="showPage('home')" class="text-xs underline">Retour Accueil</button>
-    </div>
-
-    <audio id="audio-player" class="hidden"></audio>
-
-    <script>
-        function showPage(id) {
-            document.getElementById('home-page').classList.add('hidden');
-            document.getElementById('jukebox-page').classList.add('hidden');
-            document.getElementById('wiki-page').classList.add('hidden');
-            document.getElementById(id + '-page').classList.remove('hidden');
-        }
-
-        function scanMusic(e) {
-            const list = document.getElementById('liste-musiques');
-            list.innerHTML = "";
-            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i)).forEach((f, i) => {
-                list.innerHTML += `<li class="cursor-pointer hover:text-white" onclick="playFile('${f.name}')">🎵 ${f.name}</li>`;
-            });
-        }
-
-        function togglePlay() {
-            const audio = document.getElementById('audio-player');
-            audio.paused ? audio.play() : audio.pause();
-        }
-    </script>
-</body>
-</html>

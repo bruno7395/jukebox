@@ -2,58 +2,64 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Jukebox Personnel</title>
+    <title>Discothèque Privée</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #262626; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif; }
-        .parchemin { background: #e1c699; border: 2px solid #8b5a2b; border-radius: 10px; padding: 25px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 450px; text-align: center; }
-        .hidden { display: none; }
-        .btn-menu { background: white; border: 1px solid #8b5a2b; padding: 12px; margin: 8px 0; display: flex; align-items: center; gap: 10px; border-radius: 5px; cursor: pointer; text-align: left; }
-        /* Nouveaux boutons de lecture */
-        .controls { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-        .btn-ctrl { padding: 10px 20px; background: #8b5a2b; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #liste-musiques { text-align: left; max-height: 250px; overflow-y: auto; margin-top: 15px; font-size: 13px; border-top: 1px solid #bda06a; padding-top: 10px; }
+        body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
+        .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .btn-menu { background: #26211c; border: 1px solid #bda06a; color: #d6c195; padding: 15px; margin: 10px 0; width: 100%; border-radius: 4px; cursor: pointer; text-align: left; transition: 0.3s; }
+        .btn-menu:hover { background: #bda06a; color: black; }
+        .btn-ctrl { background: #8b5a2b; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
-<body>
+<body class="p-6">
 
-    <div id="page-home" class="parchemin">
-        <h2>Discothèque Privée</h2>
-        <div class="btn-menu" onclick="showPage('jukebox')"><span>💿</span><div>Médiathèque</div></div>
-        <div class="btn-menu" onclick="showPage('wiki')"><span>🌍</span><div>Encyclopédie</div></div>
+    <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
+        <h1 class="text-3xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
+        <button onclick="showPage('jukebox')" class="btn-menu">1. Lecteur Jukebox Local</button>
+        <button onclick="showPage('wiki')" class="btn-menu">2. Explorateur de Discographies</button>
     </div>
 
-    <div id="page-jukebox" class="parchemin hidden">
-        <h2>Médiathèque</h2>
-        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)">
+    <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
+        <h2 class="text-xl text-[#bda06a] mb-4">Médiathèque</h2>
+        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-4">
         
-        <div class="controls">
-            <button class="btn-ctrl" onclick="alert('Précédent')">⏮️</button>
-            <button class="btn-ctrl" onclick="alert('Lecture/Pause')">⏯️</button>
-            <button class="btn-ctrl" onclick="alert('Suivant')">⏭️</button>
+        <div class="flex gap-4 mb-6">
+            <button class="btn-ctrl" onclick="console.log('Précédent')">⏮️</button>
+            <button class="btn-ctrl" onclick="togglePlay()">⏯️</button>
+            <button class="btn-ctrl" onclick="console.log('Suivant')">⏭️</button>
         </div>
 
-        <ul id="liste-musiques"></ul>
-        <button onclick="showPage('home')" style="margin-top:20px; cursor:pointer;">Retour Accueil</button>
+        <ul id="liste-musiques" class="text-sm"></ul>
+        <button onclick="showPage('home')" class="mt-6 text-xs underline">Retour Accueil</button>
     </div>
 
-    <div id="page-wiki" class="parchemin hidden">
-        <h2>Encyclopédie</h2>
-        <button onclick="showPage('home')" style="cursor:pointer;">Retour Accueil</button>
+    <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
+        <h2 class="text-xl text-[#bda06a] mb-4">Encyclopédie</h2>
+        <button onclick="showPage('home')" class="text-xs underline">Retour Accueil</button>
     </div>
+
+    <audio id="audio-player" class="hidden"></audio>
 
     <script>
         function showPage(id) {
-            document.getElementById('page-home').classList.add('hidden');
-            document.getElementById('page-jukebox').classList.add('hidden');
-            document.getElementById('page-wiki').classList.add('hidden');
-            document.getElementById('page-' + id).classList.remove('hidden');
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('jukebox-page').classList.add('hidden');
+            document.getElementById('wiki-page').classList.add('hidden');
+            document.getElementById(id + '-page').classList.remove('hidden');
         }
+
         function scanMusic(e) {
             const list = document.getElementById('liste-musiques');
             list.innerHTML = "";
-            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i)).forEach(f => {
-                list.innerHTML += `<li>🎵 ${f.name}</li>`;
+            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i)).forEach((f, i) => {
+                list.innerHTML += `<li class="cursor-pointer hover:text-white" onclick="playFile('${f.name}')">🎵 ${f.name}</li>`;
             });
+        }
+
+        function togglePlay() {
+            const audio = document.getElementById('audio-player');
+            audio.paused ? audio.play() : audio.pause();
         }
     </script>
 </body>

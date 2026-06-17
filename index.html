@@ -10,9 +10,8 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:hover { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 15px 25px; border-radius: 8px; cursor: pointer; }
+        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         
-        /* Navigation regroupée */
         .nav-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #bda06a; padding-bottom: 10px; margin-bottom: 20px; }
         .tabs-container { display: flex; gap: 30px; }
         .tab-btn { color: #bda06a; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.9rem; opacity: 0.6; }
@@ -25,6 +24,9 @@
         
         li { padding: 12px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
+        
+        /* Style Wiki */
+        .wiki-card { background: #26211c; border: 1px solid #bda06a; padding: 15px; text-align: center; color: #d6c195; }
     </style>
 </head>
 <body class="p-6">
@@ -43,24 +45,25 @@
                 <button onclick="showView('albums')" id="btn-albums" class="tab-btn">Albums</button>
             </div>
         </div>
-
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-sm">
-        
         <div id="now-playing" class="status-bar">Aucun morceau sélectionné</div>
-
         <div class="flex justify-center gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
             <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
             <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
         </div>
-
         <ul id="view-tracks" class="text-lg text-[#d6c195]"></ul>
         <div id="view-albums" class="hidden grid grid-cols-3 md:grid-cols-5 gap-4 p-4"></div>
     </div>
 
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
-        <button onclick="showPage('home')" class="text-lg underline text-[#bda06a]">Retour Accueil</button>
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="wiki-query" placeholder="Artiste ou Groupe..." class="flex-1 bg-[#1a1612] border border-[#bda06a] p-2 text-[#d6c195] rounded">
+            <button onclick="searchWiki()" class="btn-ctrl-luxe">Rechercher</button>
+        </div>
+        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
     <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4"></audio>
@@ -87,6 +90,22 @@
             document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
 
+        // --- MOTEUR WIKI ---
+        async function searchWiki() {
+            const q = document.getElementById('wiki-query').value;
+            if(!q) return;
+            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
+            const data = await res.json();
+            const container = document.getElementById('wiki-results');
+            container.innerHTML = data.releases.map(r => `
+                <div class="wiki-card rounded">
+                    <p class="text-sm font-bold text-white mb-1">${r.title}</p>
+                    <p class="text-[10px] text-[#bda06a]">${r['artist-credit'] ? r['artist-credit'][0].name : 'Inconnu'}</p>
+                </div>
+            `).join('');
+        }
+
+        // --- MOTEUR JUKEBOX ---
         function scanMusic(e) {
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
             currentTracks = files.map(f => ({ file: f, name: f.name, album: 'Inconnu', cover: null }));

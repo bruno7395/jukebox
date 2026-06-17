@@ -2,37 +2,38 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Jukebox Personnel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Jukebox</title>
     <style>
-        body { background-color: #0c0a09; color: white; }
+        body { font-family: sans-serif; background: #222; color: white; padding: 20px; }
+        .page { border: 2px solid white; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
+        .hidden { display: none; }
+        button { padding: 15px; margin: 10px; cursor: pointer; background: #444; color: white; border: 1px solid #ccc; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div id="page-home">
+
+    <div id="page-home" class="page">
         <h1>Mon Jukebox</h1>
         <button onclick="showPage('jukebox')">Ouvrir mon Lecteur</button>
         <button onclick="showPage('wiki')">Encyclopédie</button>
     </div>
 
-    <div id="page-jukebox" class="hidden">
-        <h2>Médiathèque</h2>
-        <button onclick="showPage('home')">Retour</button>
+    <div id="page-jukebox" class="page hidden">
+        <h2>Ma Médiathèque</h2>
+        <button onclick="showPage('home')">Retour Accueil</button>
     </div>
 
-    <div id="page-wiki" class="hidden">
+    <div id="page-wiki" class="page hidden">
         <h2>Encyclopédie</h2>
-        <button onclick="showPage('home')">Retour</button>
+        <button onclick="showPage('home')">Retour Accueil</button>
     </div>
 
     <script>
-        function showPage(pageId) {
-            // On cache tout
+        function showPage(id) {
             document.getElementById('page-home').classList.add('hidden');
             document.getElementById('page-jukebox').classList.add('hidden');
             document.getElementById('page-wiki').classList.add('hidden');
-            // On affiche la cible demandée
-            document.getElementById('page-' + pageId).classList.remove('hidden');
+            document.getElementById('page-' + id).classList.remove('hidden');
         }
     </script>
 </body>

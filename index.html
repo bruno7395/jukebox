@@ -6,21 +6,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Le style Luxe que tu exiges */
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .btn-luxe { 
-            background: #26211c; border: 2px solid #bda06a; color: #d6c195; 
-            padding: 15px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer;
-        }
+        .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 15px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; }
         .btn-luxe:hover { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { 
-            background: #8b5a2b; border: 1px solid #bda06a; color: white; 
-            padding: 10px 20px; border-radius: 4px; cursor: pointer; 
-        }
+        .btn-ctrl-luxe { background: #8b5a2b; border: 1px solid #bda06a; color: white; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body class="p-6">
+
+    <!-- PAGE ACCUEIL -->
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
@@ -48,9 +43,12 @@
         <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
-    <audio id="audio-player" class="hidden"></audio>
+    <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-2"></audio>
 
     <script>
+        let currentTracks = [];
+        const audio = document.getElementById('audio-player');
+
         function showPage(id) {
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
@@ -61,13 +59,18 @@
         function scanMusic(e) {
             const list = document.getElementById('liste-musiques');
             list.innerHTML = "";
-            Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i)).forEach((f) => {
-                list.innerHTML += `<li class="cursor-pointer hover:text-white p-1 border-b border-[#bda06a]/30">🎵 ${f.name}</li>`;
+            currentTracks = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
+            currentTracks.forEach((f, i) => {
+                list.innerHTML += `<li class="cursor-pointer hover:text-white p-1 border-b border-[#bda06a]/30" onclick="playTrack(${i})">🎵 ${f.name}</li>`;
             });
         }
 
+        function playTrack(index) {
+            audio.src = URL.createObjectURL(currentTracks[index]);
+            audio.play();
+        }
+
         function togglePlay() {
-            const audio = document.getElementById('audio-player');
             audio.paused ? audio.play() : audio.pause();
         }
     </script>

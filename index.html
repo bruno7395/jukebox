@@ -11,16 +11,13 @@
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:hover { background: #bda06a; color: black; }
         .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        
         .nav-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #bda06a; padding-bottom: 10px; margin-bottom: 20px; }
         .tab-btn { color: #bda06a; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.9rem; opacity: 0.6; padding: 5px 15px; }
         .tab-btn.active { opacity: 1; border-bottom: 2px solid #bda06a; color: white; }
         .back-btn { color: #bda06a; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
-        
         .status-bar { border: 1px solid #bda06a; background: rgba(0,0,0,0.3); color: #d6c195; padding: 10px; border-radius: 5px; font-style: italic; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
         .album-thumb { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bda06a; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
-        
         li { padding: 12px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
     </style>
@@ -92,10 +89,17 @@
             document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
         }
 
-        // --- MOTEUR JUKEBOX ---
+        // --- MOTEUR JUKEBOX AMÉLIORÉ ---
         function scanMusic(e) {
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
-            currentTracks = files.map(f => ({ file: f, name: f.name, artist: 'Inconnu', album: 'Inconnu', cover: null }));
+            // FILTRE STRICT : On n'accepte QUE les extensions audio réelles
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
+            currentTracks = files.map(f => ({ 
+                file: f, 
+                name: f.name, 
+                artist: 'Artiste Inconnu', 
+                album: 'Album Inconnu', 
+                cover: null 
+            }));
             renderAll();
             processTags(0);
         }
@@ -105,8 +109,9 @@
             
             window.jsmediatags.read(currentTracks[i].file, {
                 onSuccess: async (t) => {
-                    if (t.tags.artist) currentTracks[i].artist = t.tags.artist;
-                    if (t.tags.album) currentTracks[i].album = t.tags.album;
+                    // Récupération des tags avec fallback
+                    currentTracks[i].artist = t.tags.artist || 'Artiste Inconnu';
+                    currentTracks[i].album = t.tags.album || 'Album Inconnu';
                     
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
@@ -116,7 +121,6 @@
                     } else if (albumCovers[currentTracks[i].album]) {
                         currentTracks[i].cover = albumCovers[currentTracks[i].album];
                     } else {
-                        // AUTO-VISUEL : Si pas de cover, on cherche en ligne
                         currentTracks[i].cover = await fetchRemoteCover(currentTracks[i].artist, currentTracks[i].album);
                     }
                     renderAll();
@@ -126,8 +130,8 @@
             });
         }
 
-        // Fonction pour chercher la pochette en ligne
         async function fetchRemoteCover(artist, album) {
+            if (album === 'Album Inconnu') return null;
             try {
                 const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${artist}" AND release:"${album}"&limit=1&fmt=json`);
                 const data = await res.json();
@@ -155,7 +159,6 @@
             `).join('');
         }
         
-        // --- MOTEUR WIKI ---
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
             if(!q) return;

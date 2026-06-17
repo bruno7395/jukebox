@@ -10,9 +10,16 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:active { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
+        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 15px 25px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; }
+        
+        /* Style des onglets */
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; font-weight: bold; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: white; }
+        
         .status-bar { border: 1px solid #bda06a; background: rgba(0,0,0,0.3); color: #d6c195; padding: 15px; border-radius: 5px; font-style: italic; margin-bottom: 20px; text-align: center; }
-        .album-thumb { width: 40px; height: 40px; object-fit: cover; border: 1px solid #bda06a; }
+        .album-thumb { width: 60px; height: 60px; object-fit: cover; border: 1px solid #bda06a; }
+        .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 1px solid #bda06a; margin-bottom: 5px; }
+        
         li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
     </style>
@@ -29,6 +36,11 @@
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-lg">
         
+        <div class="flex justify-center gap-8 mb-6 border-b border-[#bda06a]">
+            <button onclick="showView('tracks')" id="btn-tracks" class="tab-btn active">Morceaux</button>
+            <button onclick="showView('albums')" id="btn-albums" class="tab-btn">Albums</button>
+        </div>
+
         <div id="now-playing" class="status-bar">Aucun morceau sélectionné</div>
 
         <div class="flex justify-center gap-4 mb-6">
@@ -37,7 +49,9 @@
             <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
         </div>
 
-        <ul id="liste-musiques" class="text-lg text-[#d6c195]"></ul>
+        <ul id="view-tracks" class="text-lg text-[#d6c195]"></ul>
+        <div id="view-albums" class="hidden grid grid-cols-3 gap-4 p-4"></div>
+
         <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
@@ -55,22 +69,26 @@
         const display = document.getElementById('now-playing');
 
         function showPage(id) {
-            // STOP LA MUSIQUE QUAND ON QUITTE LE JUKEBOX
-            audio.pause();
-            audio.currentTime = 0;
+            audio.pause(); audio.currentTime = 0;
             display.innerText = "Aucun morceau sélectionné";
-
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('jukebox-page').classList.add('hidden');
             document.getElementById('wiki-page').classList.add('hidden');
             document.getElementById(id + '-page').classList.remove('hidden');
         }
 
+        function showView(v) {
+            document.getElementById('view-tracks').classList.toggle('hidden', v !== 'tracks');
+            document.getElementById('view-albums').classList.toggle('hidden', v !== 'albums');
+            document.getElementById('btn-tracks').classList.toggle('active', v === 'tracks');
+            document.getElementById('btn-albums').classList.toggle('active', v === 'albums');
+        }
+
         function scanMusic(e) {
             if (!e.target.files) return;
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
-            currentTracks = files.map(f => ({ file: f, name: f.name, cover: null }));
-            renderList();
+            currentTracks = files.map(f => ({ file: f, name: f.name, album: 'Inconnu', cover: null }));
+            renderAll();
             processTags(0);
         }
 
@@ -81,38 +99,44 @@
                     if (t.tags.picture) {
                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                         currentTracks[i].cover = b64;
-                        renderList();
                     }
+                    if (t.tags.album) currentTracks[i].album = t.tags.album;
+                    renderAll();
                     processTags(i + 1);
                 },
                 onError: () => processTags(i + 1)
             });
         }
 
-        function renderList() {
-            const list = document.getElementById('liste-musiques');
-            list.innerHTML = "";
-            currentTracks.forEach((track, i) => {
-                const coverHtml = track.cover ? `<img src="${track.cover}" class="album-thumb">` : `<div class="album-thumb bg-[#bda06a]/20 flex items-center justify-center text-[10px]">🎵</div>`;
-                list.innerHTML += `<li onclick="playTrack(${i})">${coverHtml} ${track.name}</li>`;
-            });
+        function renderAll() {
+            // Vue Liste
+            const list = document.getElementById('view-tracks');
+            list.innerHTML = currentTracks.map((t, i) => 
+                `<li onclick="playTrack(${i})">${t.cover ? `<img src="${t.cover}" class="album-thumb">` : `<div class="album-thumb bg-[#bda06a]/20 flex items-center justify-center text-[10px]">🎵</div>`} ${t.name}</li>`
+            ).join('');
+
+            // Vue Albums (Unique albums)
+            const albums = [...new Map(currentTracks.map(item => [item.album, item])).values()];
+            const grid = document.getElementById('view-albums');
+            grid.innerHTML = albums.map(a => `
+                <div class="text-center p-2">
+                    ${a.cover ? `<img src="${a.cover}" class="grid-thumb">` : `<div class="grid-thumb bg-[#bda06a]/20 flex items-center justify-center">🎵</div>`}
+                    <p class="text-[10px] truncate">${a.album}</p>
+                </div>
+            `).join('');
         }
 
         function playTrack(index) {
             currentIndex = index;
-            const track = currentTracks[currentIndex];
-            display.innerText = "Lecture : " + track.name;
-            audio.src = URL.createObjectURL(track.file);
+            display.innerText = "Lecture : " + currentTracks[currentIndex].name;
+            audio.src = URL.createObjectURL(currentTracks[currentIndex].file);
             audio.play();
         }
 
-        function togglePlay() {
-            if (audio.paused) { audio.play(); } else { audio.pause(); }
-        }
-
-        function changeTrack(direction) {
+        function togglePlay() { audio.paused ? audio.play() : audio.pause(); }
+        function changeTrack(d) {
             if (currentTracks.length === 0) return;
-            currentIndex = (currentIndex + direction + currentTracks.length) % currentTracks.length;
+            currentIndex = (currentIndex + d + currentTracks.length) % currentTracks.length;
             playTrack(currentIndex);
         }
     </script>

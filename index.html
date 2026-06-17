@@ -2,37 +2,37 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Jukebox</title>
+    <title>Mon Jukebox</title>
     <style>
-        body { font-family: sans-serif; background: #222; color: white; padding: 20px; }
-        .page { border: 2px solid white; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
+        body { margin: 0; background: #1a1a1a; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: #2d2d2d; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 400px; text-align: center; border: 1px solid #444; }
+        h1 { color: #d4af37; margin-bottom: 2rem; font-weight: 300; }
+        button { display: block; width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #d4af37; background: transparent; color: #d4af37; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        button:hover { background: #d4af37; color: #1a1a1a; }
         .hidden { display: none; }
-        button { padding: 15px; margin: 10px; cursor: pointer; background: #444; color: white; border: 1px solid #ccc; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <div id="page-home" class="page">
-        <h1>Mon Jukebox</h1>
+    <div id="page-home" class="card">
+        <h1>Discothèque Privée</h1>
         <button onclick="showPage('jukebox')">Ouvrir mon Lecteur</button>
         <button onclick="showPage('wiki')">Encyclopédie</button>
     </div>
 
-    <div id="page-jukebox" class="page hidden">
-        <h2>Ma Médiathèque</h2>
-        <button onclick="showPage('home')">Retour Accueil</button>
+    <div id="page-jukebox" class="card hidden">
+        <h1>Médiathèque</h1>
+        <button onclick="showPage('home')">Retour</button>
     </div>
 
-    <div id="page-wiki" class="page hidden">
-        <h2>Encyclopédie</h2>
-        <button onclick="showPage('home')">Retour Accueil</button>
+    <div id="page-wiki" class="card hidden">
+        <h1>Encyclopédie</h1>
+        <button onclick="showPage('home')">Retour</button>
     </div>
 
     <script>
         function showPage(id) {
-            document.getElementById('page-home').classList.add('hidden');
-            document.getElementById('page-jukebox').classList.add('hidden');
-            document.getElementById('page-wiki').classList.add('hidden');
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
             document.getElementById('page-' + id).classList.remove('hidden');
         }
     </script>

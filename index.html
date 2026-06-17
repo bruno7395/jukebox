@@ -8,10 +8,16 @@
     <style>
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 15px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; }
-        .btn-luxe:hover { background: #bda06a; color: black; }
-        .btn-ctrl-luxe { background: #8b5a2b; border: 1px solid #bda06a; color: white; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-        .btn-ctrl-luxe:hover { background: #bda06a; color: black; }
+        .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
+        .btn-luxe:active { background: #bda06a; color: black; }
+        /* Boutons avec zone de clic large */
+        .btn-ctrl-luxe { 
+            background: #8b5a2b; border: 2px solid #bda06a; color: white; 
+            padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem;
+            transition: transform 0.1s, background 0.1s;
+        }
+        .btn-ctrl-luxe:active { background: #bda06a; color: black; transform: scale(0.95); }
+        li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; }
     </style>
 </head>
 <body class="p-6">
@@ -26,7 +32,7 @@
     <!-- PAGE JUKEBOX -->
     <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
-        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a]">
+        <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-lg">
         
         <div class="flex gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
@@ -34,17 +40,17 @@
             <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
         </div>
 
-        <ul id="liste-musiques" class="text-sm text-[#d6c195]"></ul>
-        <button onclick="showPage('home')" class="mt-6 text-xs underline text-[#bda06a]">Retour Accueil</button>
+        <ul id="liste-musiques" class="text-lg text-[#d6c195]"></ul>
+        <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
     <!-- PAGE WIKI -->
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
-        <button onclick="showPage('home')" class="text-xs underline text-[#bda06a]">Retour Accueil</button>
+        <button onclick="showPage('home')" class="text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
-    <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-2"></audio>
+    <audio id="audio-player" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4"></audio>
 
     <script>
         let currentTracks = [];
@@ -63,7 +69,7 @@
             list.innerHTML = "";
             currentTracks = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
             currentTracks.forEach((f, i) => {
-                list.innerHTML += `<li class="cursor-pointer hover:text-white p-1 border-b border-[#bda06a]/30" onclick="playTrack(${i})">🎵 ${f.name}</li>`;
+                list.innerHTML += `<li class="cursor-pointer active:bg-[#bda06a]/30" onclick="playTrack(${i})">🎵 ${f.name}</li>`;
             });
         }
 
@@ -78,6 +84,7 @@
         }
 
         function changeTrack(direction) {
+            if (currentTracks.length === 0) return;
             currentIndex = (currentIndex + direction + currentTracks.length) % currentTracks.length;
             playTrack(currentIndex);
         }

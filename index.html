@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Édition Stable</title>
+    <title>Discothèque Privée - Édition Stable 10.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,14 +20,12 @@
 </head>
 <body class="p-6">
 
-    <!-- ACCUEIL -->
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="showPage('jukebox')" class="btn-luxe mb-4">1. Entrer dans le Cabinet</button>
         <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
 
-    <!-- JUKEBOX -->
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl text-[#bda06a] font-serif">Médiathèque</h2>
@@ -50,7 +48,6 @@
         <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
     </div>
 
-    <!-- WIKI -->
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Encyclopédie</h2>
         <div class="flex gap-2 mb-6">
@@ -61,15 +58,14 @@
         <div id="wiki-results"></div>
     </div>
 
-    <!-- SUPER LECTEUR -->
     <div id="player-container" class="fixed bottom-4 w-[90%] left-[5%] parchment p-4 rounded hidden border-2 border-[#bda06a] z-50">
         <audio id="audio-engine" class="hidden"></audio>
         <video id="video-engine" class="hidden w-full max-h-40 mb-2 border border-[#bda06a]"></video>
-        <div id="status-bar" class="text-[#bda06a] text-sm mb-2 font-bold italic">En attente...</div>
+        <div id="status-bar" class="text-[#bda06a] text-sm mb-2 font-bold italic">Prêt.</div>
         <div class="flex gap-4">
-            <button onclick="playMedia()" class="player-btn"><i class="fa fa-play"></i></button>
-            <button onclick="pauseMedia()" class="player-btn"><i class="fa fa-pause"></i></button>
-            <button onclick="stopMedia()" class="player-btn"><i class="fa fa-stop"></i></button>
+            <button onclick="playMedia()" class="player-btn"><i class="fa fa-play"></i> Play</button>
+            <button onclick="pauseMedia()" class="player-btn"><i class="fa fa-pause"></i> Pause</button>
+            <button onclick="stopMedia()" class="player-btn"><i class="fa fa-stop"></i> Stop</button>
         </div>
     </div>
 
@@ -79,11 +75,8 @@
         let currentEngine = null;
 
         function showPage(p) {
-            // Arrêt forcé si on quitte le Jukebox
             if (p !== 'jukebox') stopMedia();
-            // Nettoyage Wiki si on quitte
             if (p !== 'wiki') { document.getElementById('wiki-results').innerHTML = ""; document.getElementById('wiki-query').value = ""; }
-            
             document.getElementById('home-page').classList.toggle('hidden', p !== 'home');
             document.getElementById('jukebox-page').classList.toggle('hidden', p !== 'jukebox');
             document.getElementById('wiki-page').classList.toggle('hidden', p !== 'wiki');
@@ -121,8 +114,10 @@
 
         function render() {
             document.getElementById('media-list-body').innerHTML = mediaItems.map((m, i) => `
-                <tr class="border-b border-[#bda06a]/20"><td class="p-3 text-[#d6c195]">${m.name}</td>
-                <td class="p-3"><button onclick="loadAndPlay(${i})" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td></tr>`).join('');
+                <tr class="border-b border-[#bda06a]/20">
+                    <td class="p-3 text-[#d6c195]">${m.name}</td>
+                    <td class="p-3"><button onclick="loadAndPlay(${i})" class="text-[#bda06a] hover:text-white"><i class="fa fa-play"></i></button></td>
+                </tr>`).join('');
             
             const albums = [...new Set(mediaItems.map(m => m.album))];
             document.getElementById('view-albums').innerHTML = albums.map(a => `
@@ -177,7 +172,6 @@
                 const bestTitle = searchRes.query.search[0].title;
                 const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`).then(r => r.json());
                 const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${bestTitle}"&limit=12&fmt=json`).then(r => r.json());
-                
                 res.innerHTML = `
                     <div class="p-4 parchment mb-4"><h3 class="text-xl text-[#bda06a]">${wiki.title}</h3><p class="text-sm">${wiki.extract}</p></div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

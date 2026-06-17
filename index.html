@@ -11,10 +11,12 @@
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 20px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; font-size: 1.2rem; }
         .btn-luxe:hover { background: #bda06a; color: black; }
-        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; }
-        .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; font-weight: bold; }
+        .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .tab-btn { padding: 10px 20px; color: #bda06a; border-bottom: 2px solid transparent; cursor:pointer; text-transform: uppercase; font-weight: bold; }
+        .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
         .album-thumb { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bda06a; }
         .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
+        .wiki-bio { border-bottom: 2px solid #bda06a; padding-bottom: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body class="p-6">
@@ -22,8 +24,8 @@
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-2">Discothèque</h1>
         <h2 class="text-xl text-[#bda06a] mb-8 italic">Privée</h2>
-        <button onclick="showPage('jukebox')" class="w-full bg-[#bda06a] text-black font-bold p-4 rounded hover:bg-white transition mb-4">1. Entrer dans le Cabinet</button>
-        <button onclick="showPage('wiki')" class="w-full border border-[#bda06a] text-[#bda06a] p-4 rounded hover:bg-[#bda06a]/20 transition">2. Encyclopédie</button>
+        <button onclick="showPage('jukebox')" class="btn-luxe mb-4">1. Entrer dans le Cabinet</button>
+        <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
 
     <div id="jukebox-page" class="hidden max-w-6xl mx-auto parchment p-8 rounded-xl mt-4">
@@ -33,7 +35,7 @@
         </div>
         
         <label class="bg-[#8b5a2b] px-6 py-2 rounded cursor-pointer font-bold hover:bg-[#bda06a] transition mb-6 inline-block">
-            <i class="fa fa-folder-open mr-2"></i> Scanner mes dossiers (Audio uniquement)
+            <i class="fa fa-folder-open mr-2"></i> Scanner dossiers
             <input type="file" webkitdirectory directory multiple class="hidden" onchange="importMusic(event)">
         </label>
         
@@ -42,7 +44,7 @@
             <div onclick="showView('albums')" class="tab-btn" id="btn-albums">Albums</div>
         </div>
 
-        <div id="status" class="text-amber-500 mb-4 text-sm italic">Prêt.</div>
+        <div id="status" class="text-amber-500 mb-4 text-sm italic">En attente...</div>
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh]">
             <table class="w-full text-left"><tbody id="music-list-body"></tbody></table>
         </div>
@@ -50,13 +52,13 @@
     </div>
 
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Encyclopédie</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Explorateur Encyclopédique</h2>
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Artiste...">
+            <input type="text" id="wiki-query" class="flex-grow bg-[#1a1612] p-2 border border-[#bda06a] rounded text-white" placeholder="Nom de l'artiste...">
             <button onclick="searchWiki()" class="bg-[#bda06a] px-4 py-2 rounded text-black font-bold">Chercher</button>
             <button onclick="showPage('home')" class="border px-4 py-2 rounded">Retour</button>
         </div>
-        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div id="wiki-results"></div>
     </div>
 
     <audio id="audio" controls class="fixed bottom-4 w-[90%] left-[5%] parchment p-2 rounded"></audio>
@@ -75,19 +77,15 @@
 
         function importMusic(e) {
             tracks = [];
-            // FILTRE RADICAL : On n'accepte que les fichiers audio
-            const audioExtensions = /\.(mp3|wav|m4a|flac|ogg)$/i;
-            const files = Array.from(e.target.files).filter(f => audioExtensions.test(f.name));
-            
-            document.getElementById('status').innerText = `Chargement de ${files.length} titres audio...`;
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             files.forEach(f => tracks.push({ file: f, title: f.name, artist: "Inconnu", album: "Inconnu" }));
             render(); processTags(0);
         }
 
-        function processTags(i) {
+        async function processTags(i) {
             if (i >= tracks.length) { document.getElementById('status').innerText = "Scan terminé."; return; }
             window.jsmediatags.read(tracks[i].file, {
-                onSuccess: (t) => {
+                onSuccess: async (t) => {
                     tracks[i].artist = t.tags.artist || "Inconnu";
                     tracks[i].album = t.tags.album || "Album Inconnu";
                     if (t.tags.picture) {
@@ -124,10 +122,28 @@
 
         async function searchWiki() {
             const q = document.getElementById('wiki-query').value;
-            const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`);
-            const data = await res.json();
-            document.getElementById('wiki-results').innerHTML = data.releases.map(r => `
-                <div class="parchment p-2 rounded text-center text-[10px] border-[#bda06a]">${r.title}</div>`).join('');
+            const res = document.getElementById('wiki-results');
+            res.innerHTML = "Recherche en cours...";
+            
+            // 1. Wikipedia Bio
+            const wiki = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`).then(r => r.json());
+            // 2. MusicBrainz Discographie
+            const mb = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${q}"&limit=12&fmt=json`).then(r => r.json());
+            
+            res.innerHTML = `
+                <div class="wiki-bio">
+                    <h3 class="text-xl text-[#bda06a] mb-2">${wiki.title || 'Artiste'}</h3>
+                    <p class="text-sm">${wiki.extract || "Pas de biographie disponible."}</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    ${mb.releases.map(r => `
+                        <div class="parchment p-2 text-center text-[10px]">
+                            <p class="font-bold">${r.title}</p>
+                            <p>${r.date ? r.date.split('-')[0] : ''}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
     </script>
 </body>

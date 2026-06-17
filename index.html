@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Discothèque Privée</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bibliothèque pour lire les tags MP3 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <style>
         body { background: #1a1612; color: #d6c195; min-height: 100vh; font-family: 'Georgia', serif; }
         .parchment { background: #26211c; border: 2px solid #bda06a; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
@@ -12,28 +14,28 @@
         .btn-ctrl-luxe { background: #8b5a2b; border: 2px solid #bda06a; color: white; padding: 20px 30px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
         .btn-ctrl-luxe:active { background: #bda06a; color: black; transform: scale(0.95); }
         
-        /* Style de l'étiquette de lecture */
         .status-bar { border: 1px solid #bda06a; background: rgba(0,0,0,0.3); color: #d6c195; padding: 15px; border-radius: 5px; font-style: italic; margin-bottom: 20px; text-align: center; }
         
-        li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; }
+        li { padding: 15px !important; border-bottom: 1px solid #bda06a; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         li:hover { background: rgba(189, 160, 106, 0.2); color: white; }
+        .album-thumb { width: 40px; height: 40px; object-fit: cover; border: 1px solid #bda06a; }
     </style>
 </head>
 <body class="p-6">
 
+    <!-- ACCUEIL -->
     <div id="home-page" class="max-w-md mx-auto mt-20 parchment p-10 rounded-xl text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="showPage('jukebox')" class="btn-luxe">1. Entrer dans le Cabinet</button>
         <button onclick="showPage('wiki')" class="btn-luxe">2. Encyclopédie</button>
     </div>
 
+    <!-- JUKEBOX -->
     <div id="jukebox-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-6">Médiathèque</h2>
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a] text-lg">
         
-        <div id="now-playing" class="status-bar">
-            Sélectionnez un morceau pour commencer
-        </div>
+        <div id="now-playing" class="status-bar">Aucun morceau sélectionné</div>
 
         <div class="flex justify-center gap-4 mb-6">
             <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
@@ -45,6 +47,7 @@
         <button onclick="showPage('home')" class="mt-8 text-lg underline text-[#bda06a]">Retour Accueil</button>
     </div>
 
+    <!-- WIKI -->
     <div id="wiki-page" class="hidden max-w-4xl mx-auto parchment p-8 rounded-xl mt-4">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
         <button onclick="showPage('home')" class="text-lg underline text-[#bda06a]">Retour Accueil</button>
@@ -66,32 +69,48 @@
         }
 
         function scanMusic(e) {
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
+            // On prépare la structure des données avec un champ 'cover' vide par défaut
+            currentTracks = files.map(f => ({ file: f, name: f.name, cover: null }));
+            renderList();
+            processTags(0); // Lancement de l'extraction des pochettes
+        }
+
+        // Fonction récursive pour extraire les pochettes sans bloquer
+        function processTags(i) {
+            if (i >= currentTracks.length) return;
+            window.jsmediatags.read(currentTracks[i].file, {
+                onSuccess: (t) => {
+                    if (t.tags.picture) {
+                        const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                        currentTracks[i].cover = b64;
+                        renderList(); // Mise à jour de l'affichage dès qu'une pochette est trouvée
+                    }
+                    processTags(i + 1);
+                },
+                onError: () => processTags(i + 1)
+            });
+        }
+
+        function renderList() {
             const list = document.getElementById('liste-musiques');
             list.innerHTML = "";
-            currentTracks = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wma|wav)$/i));
-            currentTracks.forEach((f, i) => {
-                list.innerHTML += `<li onclick="playTrack(${i})">🎵 ${f.name}</li>`;
+            currentTracks.forEach((track, i) => {
+                const coverHtml = track.cover ? `<img src="${track.cover}" class="album-thumb">` : `<div class="album-thumb bg-[#bda06a]/20 flex items-center justify-center text-[10px]">🎵</div>`;
+                list.innerHTML += `<li onclick="playTrack(${i})">${coverHtml} ${track.name}</li>`;
             });
         }
 
         function playTrack(index) {
-            if (currentTracks.length === 0) return;
             currentIndex = index;
             const track = currentTracks[currentIndex];
-            
-            // Mise à jour de l'affichage
             display.innerText = "Lecture en cours : " + track.name;
-            
-            audio.src = URL.createObjectURL(track);
+            audio.src = URL.createObjectURL(track.file);
             audio.play();
         }
 
         function togglePlay() {
-            if (audio.paused) {
-                audio.play();
-            } else {
-                audio.pause();
-            }
+            audio.paused ? audio.play() : audio.pause();
         }
 
         function changeTrack(direction) {

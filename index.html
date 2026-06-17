@@ -11,6 +11,7 @@
         .btn-luxe { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 15px; width: 100%; text-align: left; transition: 0.3s; cursor: pointer; }
         .btn-luxe:hover { background: #bda06a; color: black; }
         .btn-ctrl-luxe { background: #8b5a2b; border: 1px solid #bda06a; color: white; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .btn-ctrl-luxe:hover { background: #bda06a; color: black; }
     </style>
 </head>
 <body class="p-6">
@@ -28,9 +29,9 @@
         <input type="file" webkitdirectory directory multiple onchange="scanMusic(event)" class="mb-6 block text-[#bda06a]">
         
         <div class="flex gap-4 mb-6">
-            <button class="btn-ctrl-luxe" onclick="console.log('Précédent')">⏮️</button>
+            <button class="btn-ctrl-luxe" onclick="changeTrack(-1)">⏮️</button>
             <button class="btn-ctrl-luxe" onclick="togglePlay()">⏯️</button>
-            <button class="btn-ctrl-luxe" onclick="console.log('Suivant')">⏭️</button>
+            <button class="btn-ctrl-luxe" onclick="changeTrack(1)">⏭️</button>
         </div>
 
         <ul id="liste-musiques" class="text-sm text-[#d6c195]"></ul>
@@ -47,6 +48,7 @@
 
     <script>
         let currentTracks = [];
+        let currentIndex = 0;
         const audio = document.getElementById('audio-player');
 
         function showPage(id) {
@@ -66,12 +68,18 @@
         }
 
         function playTrack(index) {
-            audio.src = URL.createObjectURL(currentTracks[index]);
+            currentIndex = index;
+            audio.src = URL.createObjectURL(currentTracks[currentIndex]);
             audio.play();
         }
 
         function togglePlay() {
             audio.paused ? audio.play() : audio.pause();
+        }
+
+        function changeTrack(direction) {
+            currentIndex = (currentIndex + direction + currentTracks.length) % currentTracks.length;
+            playTrack(currentIndex);
         }
     </script>
 </body>

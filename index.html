@@ -60,11 +60,9 @@
 
     <script>
         const player = document.getElementById('player');
-        let mediaItems = []; 
+        let mediaItems = [];
+        let albumCovers = {}; 
         let activeBlobUrl = null;
-
-        // Récupération sécurisée de la mémoire des pochettes
-        let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
 
         function changeView(view) {
             player.pause(); 
@@ -83,15 +81,15 @@
         }
 
         function importFiles(e) {
-            // Filtrage des fichiers supportés nativement par le web pour éviter les plantages
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/i));
+            // Lecture de tous les formats autorisés
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
             if(files.length === 0) {
-                document.getElementById('music-status').innerText = "⚠️ Aucun fichier MP3, WAV ou M4A trouvé.";
+                document.getElementById('music-status').innerText = "⚠️ Aucun fichier audio compatible trouvé.";
                 return;
             }
 
-            document.getElementById('music-status').innerText = `⏳ Indexation de ${files.length} morceaux...`;
-            
+            document.getElementById('music-status').innerText = `⏳ Indexation initiale de ${files.length} fichiers...`;
+
             mediaItems = files.map((f, i) => ({
                 file: f,
                 name: f.name,
@@ -100,13 +98,14 @@
                 index: i
             }));
 
-            // Rendu initial ultra-rapide en texte brut
+            // Affichage instantané de la structure (Appelé UNE seule fois)
             renderTracksOnly();
             renderAlbumsOnly();
             
             let processed = 0;
+            let coversFound = 0;
 
-            // Analyse des étiquettes en arrière-plan sans bloquer l'affichage
+            // Lecture des étiquettes en arrière-plan sans bloquer le fil d'exécution
             mediaItems.forEach((item) => {
                 window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
@@ -116,58 +115,41 @@
                         if(t.tags.picture) {
                             const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                             albumCovers[item.album] = b64;
-                            localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
+                            coversFound++;
                         }
                         
-                        // Mise à jour ciblée de la ligne de texte (ZÉRO fuite de mémoire)
-                        const cell = document.getElementById(`track-info-${item.index}`);
-                        if(cell) {
-                            cell.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
+                        // Mise à jour ultra-ciblée de l'élément texte par son ID unique
+                        const trackText = document.getElementById(`track-text-${item.index}`);
+                        if(trackText) {
+                            trackText.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
                         }
                         
                         processed++;
-                        if (processed === mediaItems.length) { startOnlineAspirateur(); }
+                        
+                        // Rafraîchissement par lots toutes les 30 pochettes pour garder l'interface fluide
+                        if (processed % 30 === 0 || processed === mediaItems.length) {
+                            document.getElementById('music-status').innerText = `⏳ Analyse des fichiers : ${processed}/${mediaItems.length} — ${coversFound} pochettes extraites.`;
+                            renderAlbumsOnly();
+                        }
+                        if (processed === mediaItems.length) {
+                            document.getElementById('music-status').innerText = `✅ Analyse terminée ! ${mediaItems.length} morceaux prêts, ${Object.keys(albumCovers).length} albums uniques générés.`;
+                        }
                     },
                     onError: () => {
                         processed++;
-                        if (processed === mediaItems.length) { startOnlineAspirateur(); }
+                        if (processed % 30 === 0 || processed === mediaItems.length) {
+                            document.getElementById('music-status').innerText = `⏳ Analyse des fichiers : ${processed}/${mediaItems.length} — ${coversFound} pochettes extraites.`;
+                            renderAlbumsOnly();
+                        }
+                        if (processed === mediaItems.length) {
+                            document.getElementById('music-status').innerText = `✅ Analyse terminée ! ${mediaItems.length} morceaux prêts, ${Object.keys(albumCovers).length} albums uniques générés.`;
+                        }
                     }
                 });
             });
         }
 
-        async function startOnlineAspirateur() {
-            renderAlbumsOnly();
-            const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))].filter(a => a !== "Album Inconnu");
-            document.getElementById('music-status').innerHTML = `✅ Indexation finie. Aspirateur en recherche sur Internet pour <strong>${uniqueAlbums.length} albums</strong>...`;
-
-            for (let albumName of uniqueAlbums) {
-                if (albumCovers[albumName]) continue;
-
-                const match = mediaItems.find(item => item.album === albumName);
-                if (!match || match.artist === "Artiste Inconnu") continue;
-
-                try {
-                    document.getElementById('music-status').innerText = `🔍 Aspirateur : Recherche du visuel de [${albumName}]...`;
-                    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(match.artist)}"+AND+release:"${encodeURIComponent(albumName)}"&limit=1&fmt=json`;
-                    const res = await fetch(searchUrl);
-                    const data = await res.json();
-                    
-                    if (data.releases && data.releases.length > 0) {
-                        const releaseId = data.releases[0].id;
-                        albumCovers[albumName] = `https://coverartarchive.org/release/${releaseId}/front`;
-                        localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
-                        renderAlbumsOnly();
-                    }
-                } catch (err) { }
-                // Pause de sécurité d'une seconde pour éviter les surchauffes
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            document.getElementById('music-status').innerText = `🎉 Cabinet entièrement synchronisé et sauvegardé !`;
-        }
-
-        // Sécurité Mémoire : Création du lien uniquement au clic de lecture
+        // Sécurité anti-fuite mémoire : lien créé au clic, détruit au morceau suivant
         function playTrack(index) {
             if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
             const item = mediaItems[index];
@@ -178,11 +160,10 @@
         }
 
         function renderTracksOnly() {
-            document.getElementById('media-list').innerHTML = mediaItems.map((item, i) => `
+            document.getElementById('media-list').innerHTML = mediaItems.map((f, i) => `
                 <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition">
-                    <td class="p-3" id="track-info-${i}">
-                        <span class="font-bold text-white">${item.name}</span>
-                        <br><span class="text-xs text-stone-400">Artiste Inconnu — Album Inconnu</span>
+                    <td class="p-3" id="track-text-${i}">
+                        <span class="font-bold text-white">${f.name}</span>
                     </td>
                     <td class="p-3 text-right">
                         <button onclick="playTrack(${i})" class="text-[#bda06a] hover:text-white p-2 text-lg transition"><i class="fa fa-play"></i></button>
@@ -197,7 +178,7 @@
                 return `
                 <div class="p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow">
                     <div class="w-full aspect-square border border-[#bda06a]/50 bg-stone-950 flex items-center justify-center overflow-hidden rounded relative">
-                        ${coverImg ? `<img src="${coverImg}" class="w-full h-full object-cover" onerror="this.src=''; this.parentNode.innerHTML='<i class=fa fa-compact-disc text-4xl text-stone-600></i>';">` : `<div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-4xl text-stone-600 mb-1"></i></div>`}
+                        ${coverImg ? `<img src="${coverImg}" class="grid-thumb w-full h-full object-cover">` : `<div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-4xl text-stone-600 mb-1"></i></div>`}
                     </div>
                     <p class="text-xs truncate mt-2 font-bold text-white" title="${albumName}">${albumName}</p>
                 </div>`;

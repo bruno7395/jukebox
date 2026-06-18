@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel</title>
+    <title>Discothèque Privée - Retour aux Sources</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,23 +12,20 @@
         .btn-menu { background: #26211c; border: 2px solid #bda06a; color: #d6c195; padding: 15px; width: 100%; text-align: left; margin-bottom: 10px; cursor: pointer; font-size: 1.2rem; }
         .tab-btn { padding: 10px 20px; color: #d6c195; cursor:pointer; border-bottom: 2px solid transparent; text-transform: uppercase; font-weight: bold; }
         .tab-btn.active { border-bottom: 2px solid #bda06a; color: #fff; }
+        .grid-thumb { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 2px solid #bda06a; }
     </style>
 </head>
 <body class="p-6">
 
-    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-20 parchment text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
-    <!-- VUE JUKEBOX / MÉDIATHÈQUE -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque Sécurisée</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque</h2>
         <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
-        
-        <!-- Sélection du dossier (Filtre strict MP3, WAV, M4A) -->
         <input type="file" webkitdirectory directory multiple class="mb-4 block text-sm cursor-pointer" onchange="importFiles(event)">
         
         <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
@@ -36,9 +33,8 @@
             <div onclick="showTab('albums')" class="tab-btn" id="tab-albums">Albums</div>
         </div>
 
-        <!-- Barre de statut -->
         <div id="music-status" class="text-sm text-[#bda06a] mb-4 bg-black/40 p-3 rounded border border-[#bda06a]/20 italic">
-            Prêt pour le scan (Fichiers MP3, WAV, M4A)...
+            Prêt pour le scan de vos dossiers...
         </div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh] bg-black/20 rounded border border-stone-800">
@@ -52,13 +48,12 @@
         </div>
     </div>
 
-    <!-- VUE ENCYCLOPÉDIE WIKIPEDIA -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
         <div class="flex gap-2 mb-6">
             <input type="text" id="wiki-input" onkeypress="if(event.key === 'Enter') searchWiki()" class="bg-black p-2 border border-[#bda06a] flex-grow text-white rounded">
-            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded hover:bg-[#e5c185] transition">Chercher</button>
-            <button onclick="changeView('home')" class="border p-2 rounded hover:bg-white/5 transition">Retour</button>
+            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded">Chercher</button>
+            <button onclick="changeView('home')" class="border p-2 rounded">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
@@ -68,7 +63,7 @@
         let mediaItems = []; 
         let activeBlobUrl = null;
 
-        // Récupération de la mémoire locale sécurisée
+        // Récupération sécurisée de la mémoire des pochettes
         let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
 
         function changeView(view) {
@@ -88,27 +83,31 @@
         }
 
         function importFiles(e) {
-            // Sécurité absolue : on élimine le WMA, le FLAC et le OGG qui brisent l'indexation
+            // Filtrage des fichiers supportés nativement par le web pour éviter les plantages
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/i));
             if(files.length === 0) {
-                document.getElementById('music-status').innerText = "⚠️ Aucun fichier MP3, WAV ou M4A valide trouvé dans ce dossier.";
+                document.getElementById('music-status').innerText = "⚠️ Aucun fichier MP3, WAV ou M4A trouvé.";
                 return;
             }
 
-            document.getElementById('music-status').innerText = `⏳ Indexation de ${files.length} fichiers audio compatibles...`;
+            document.getElementById('music-status').innerText = `⏳ Indexation de ${files.length} morceaux...`;
             
-            mediaItems = files.map(f => ({
+            mediaItems = files.map((f, i) => ({
                 file: f,
                 name: f.name,
                 album: "Album Inconnu",
-                artist: "Artiste Inconnu"
+                artist: "Artiste Inconnu",
+                index: i
             }));
 
-            render();
+            // Rendu initial ultra-rapide en texte brut
+            renderTracksOnly();
+            renderAlbumsOnly();
             
             let processed = 0;
 
-            mediaItems.forEach((item, index) => {
+            // Analyse des étiquettes en arrière-plan sans bloquer l'affichage
+            mediaItems.forEach((item) => {
                 window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
                         if (t.tags.album && t.tags.album.trim() !== "") item.album = t.tags.album.trim();
@@ -120,9 +119,10 @@
                             localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
                         }
                         
-                        const titleBox = document.getElementById(`track-text-${index}`);
-                        if(titleBox) {
-                            titleBox.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
+                        // Mise à jour ciblée de la ligne de texte (ZÉRO fuite de mémoire)
+                        const cell = document.getElementById(`track-info-${item.index}`);
+                        if(cell) {
+                            cell.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
                         }
                         
                         processed++;
@@ -137,9 +137,9 @@
         }
 
         async function startOnlineAspirateur() {
-            render();
+            renderAlbumsOnly();
             const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))].filter(a => a !== "Album Inconnu");
-            document.getElementById('music-status').innerHTML = `✅ Scan fini. Recherche des pochettes internet pour <strong>${uniqueAlbums.length} albums</strong>... <br><span class="text-xs text-stone-400">Cliquez sur l'onglet "Albums" pour les voir apparaître !</span>`;
+            document.getElementById('music-status').innerHTML = `✅ Indexation finie. Aspirateur en recherche sur Internet pour <strong>${uniqueAlbums.length} albums</strong>...`;
 
             for (let albumName of uniqueAlbums) {
                 if (albumCovers[albumName]) continue;
@@ -149,7 +149,6 @@
 
                 try {
                     document.getElementById('music-status').innerText = `🔍 Aspirateur : Recherche du visuel de [${albumName}]...`;
-                    
                     const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(match.artist)}"+AND+release:"${encodeURIComponent(albumName)}"&limit=1&fmt=json`;
                     const res = await fetch(searchUrl);
                     const data = await res.json();
@@ -158,36 +157,40 @@
                         const releaseId = data.releases[0].id;
                         albumCovers[albumName] = `https://coverartarchive.org/release/${releaseId}/front`;
                         localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
-                        render();
+                        renderAlbumsOnly();
                     }
                 } catch (err) { }
+                // Pause de sécurité d'une seconde pour éviter les surchauffes
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            document.getElementById('music-status').innerText = `🎉 Vos albums sont à jour et enregistrés en mémoire !`;
+            document.getElementById('music-status').innerText = `🎉 Cabinet entièrement synchronisé et sauvegardé !`;
         }
 
+        // Sécurité Mémoire : Création du lien uniquement au clic de lecture
         function playTrack(index) {
             if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
             const item = mediaItems[index];
             activeBlobUrl = URL.createObjectURL(item.file);
             player.src = activeBlobUrl;
             player.play();
-            document.getElementById('music-status').innerText = `▶ Lecture : ${item.name}`;
+            document.getElementById('music-status').innerText = `▶ Lecture en cours : ${item.name}`;
         }
 
-        function render() {
+        function renderTracksOnly() {
             document.getElementById('media-list').innerHTML = mediaItems.map((item, i) => `
                 <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition">
-                    <td class="p-3" id="track-text-${i}">
+                    <td class="p-3" id="track-info-${i}">
                         <span class="font-bold text-white">${item.name}</span>
-                        <br><span class="text-xs text-stone-400">${item.artist} — ${item.album}</span>
+                        <br><span class="text-xs text-stone-400">Artiste Inconnu — Album Inconnu</span>
                     </td>
                     <td class="p-3 text-right">
                         <button onclick="playTrack(${i})" class="text-[#bda06a] hover:text-white p-2 text-lg transition"><i class="fa fa-play"></i></button>
                     </td>
                 </tr>`).join('');
-            
+        }
+
+        function renderAlbumsOnly() {
             const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))];
             document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
                 const coverImg = albumCovers[albumName];

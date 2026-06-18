@@ -17,47 +17,58 @@
 </head>
 <body class="p-6">
 
+    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-20 parchment text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
+    <!-- VUE JUKEBOX / MÉDIATHÈQUE -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque</h2>
-        <button onclick="changeView('home')" class="underline mb-4 block">Retour</button>
-        <input type="file" webkitdirectory directory multiple class="mb-4 block" onchange="importFiles(event)">
+        <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
+        <input type="file" webkitdirectory directory multiple class="mb-4 block text-sm cursor-pointer" onchange="importFiles(event)">
         
         <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
             <div onclick="showTab('tracks')" class="tab-btn active" id="tab-tracks">Morceaux</div>
             <div onclick="showTab('albums')" class="tab-btn" id="tab-albums">Albums</div>
         </div>
 
-        <div id="view-tracks"><table class="w-full text-left"><tbody id="media-list"></tbody></table></div>
-        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+        <div id="music-status" class="text-xs text-[#bda06a] mb-4 italic">Prêt pour le scan...</div>
+
+        <div id="view-tracks" class="overflow-y-auto max-h-[50vh] bg-black/20 rounded border border-stone-800"><table class="w-full text-left"><tbody id="media-list"></tbody></table></div>
+        <div id="view-albums" class="hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 max-h-[50vh] overflow-y-auto p-1"></div>
         
-        <div class="fixed bottom-0 left-0 w-full bg-[#1a1612] p-4 border-t border-[#bda06a]">
+        <div class="fixed bottom-0 left-0 w-full bg-[#1a1612] p-4 border-t border-[#bda06a] z-50">
             <audio id="player" controls class="w-full"></audio>
         </div>
     </div>
 
+    <!-- VUE ENCYCLOPÉDIE WIKIPEDIA -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-input" class="bg-black p-2 border border-[#bda06a] flex-grow text-white">
-            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold">Chercher</button>
-            <button onclick="changeView('home')" class="border p-2">Retour</button>
+            <input type="text" id="wiki-input" onkeypress="if(event.key === 'Enter') searchWiki()" class="bg-black p-2 border border-[#bda06a] flex-grow text-white rounded">
+            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded hover:bg-[#e5c185] transition">Chercher</button>
+            <button onclick="changeView('home')" class="border p-2 rounded hover:bg-white/5 transition">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <script>
         const player = document.getElementById('player');
-        let mediaItems = [];
+        let mediaItems = []; 
         let albumCovers = {}; 
+        let activeBlobUrl = null;
 
         function changeView(view) {
-            player.pause(); player.src = "";
+            player.pause(); 
+            if (activeBlobUrl) {
+                URL.revokeObjectURL(activeBlobUrl);
+                activeBlobUrl = null;
+            }
+            player.src = "";
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
             document.getElementById('jukebox-view').style.display = (view === 'jukebox') ? 'block' : 'none';
             document.getElementById('wiki-view').style.display = (view === 'wiki') ? 'block' : 'none';
@@ -71,14 +82,45 @@
         }
 
         function importFiles(e) {
-            mediaItems = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
+            document.getElementById('music-status').innerText = `⏳ Indexation de ${files.length} fichiers audio...`;
+            
+            // Organisation des données en objets sécurisés
+            mediaItems = files.map(f => ({
+                file: f,
+                name: f.name,
+                album: "Album Inconnu",
+                artist: "Artiste Inconnu"
+            }));
+
             render();
-            mediaItems.forEach(file => {
-                window.jsmediatags.read(file, {
+            
+            // Scan des étiquettes WMP internes en tâche de fond (sans figer la RAM)
+            mediaItems.forEach((item, index) => {
+                window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
+                        if (t.tags.album && t.tags.album.trim() !== "") item.album = t.tags.album.trim();
+                        if (t.tags.artist && t.tags.artist.trim() !== "") item.artist = t.tags.artist.trim();
+                        
                         if(t.tags.picture) {
-                            const b64 = "data:"+t.tags.picture.format+";base64,"+btoa(String.fromCharCode(...t.tags.picture.data));
-                            albumCovers[t.tags.album || "Inconnu"] = b64;
+                            const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
+                            albumCovers[item.album] = b64;
+                        }
+                        
+                        // Actualisation en direct des lignes de texte lues
+                        const titleBox = document.getElementById(`track-text-${index}`);
+                        if(titleBox) {
+                            titleBox.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
+                        }
+                        
+                        if (index === mediaItems.length - 1) {
+                            document.getElementById('music-status').innerText = `✅ Analyse complétée. ${mediaItems.length} morceaux prêts !`;
+                            render();
+                        }
+                    },
+                    onError: () => {
+                        if (index === mediaItems.length - 1) {
+                            document.getElementById('music-status').innerText = `✅ Analyse complétée. ${mediaItems.length} morceaux prêts !`;
                             render();
                         }
                     }
@@ -86,31 +128,58 @@
             });
         }
 
+        function playTrack(index) {
+            // Sécurité anti-soudure : on détruit l'ancienne adresse avant de charger la nouvelle
+            if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
+            
+            const item = mediaItems[index];
+            activeBlobUrl = URL.createObjectURL(item.file);
+            player.src = activeBlobUrl;
+            player.play();
+            document.getElementById('music-status').innerText = `▶ Lecture en cours : ${item.name}`;
+        }
+
         function render() {
-            document.getElementById('media-list').innerHTML = mediaItems.map(f => `
-                <tr class="border-b border-[#bda06a]/30">
-                    <td class="p-3">${f.name}</td>
-                    <td class="p-3"><button onclick="player.src='${URL.createObjectURL(f)}'; player.play()" class="text-[#bda06a]"><i class="fa fa-play"></i></button></td>
+            // Rendu du tableau des morceaux
+            document.getElementById('media-list').innerHTML = mediaItems.map((item, i) => `
+                <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition">
+                    <td class="p-3" id="track-text-${i}">
+                        <span class="font-bold text-white">${item.name}</span>
+                        <br><span class="text-xs text-stone-400">${item.artist} — ${item.album}</span>
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="playTrack(${i})" class="text-[#bda06a] hover:text-white p-2 text-lg transition"><i class="fa fa-play"></i></button>
+                    </td>
                 </tr>`).join('');
             
-            document.getElementById('view-albums').innerHTML = Object.keys(albumCovers).map(a => `
-                <div class="p-3 border border-[#bda06a]/30 text-center">
-                    <img src="${albumCovers[a]}" class="grid-thumb">
-                    <p class="text-xs truncate mt-2">${a}</p>
-                </div>`).join('');
+            // Extraction propre de la liste unique de tous tes albums
+            const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))];
+            
+            // Rendu graphique de la grille des vinyles (avec image de secours automatique)
+            document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
+                const coverImg = albumCovers[albumName];
+                return `
+                <div class="p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow">
+                    <div class="w-full aspect-square border border-[#bda06a]/50 bg-stone-950 flex items-center justify-center overflow-hidden rounded relative">
+                        ${coverImg ? `<img src="${coverImg}" class="w-full h-full object-cover">` : `<div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-4xl text-stone-600 mb-1"></i><span class="text-[9px] text-stone-500 uppercase tracking-wider px-1 truncate w-full">${albumName}</span></div>`}
+                    </div>
+                    <p class="text-xs truncate mt-2 font-bold text-white" title="${albumName}">${albumName}</p>
+                </div>`;
+            }).join('');
         }
 
         async function searchWiki() {
             const q = document.getElementById('wiki-input').value;
             const res = document.getElementById('wiki-results');
+            if(!q.trim()) return;
             res.innerHTML = "Recherche...";
             try {
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const t = s.query.search[0].title;
                 const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
                 const m = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${t}"&limit=8&fmt=json`).then(r => r.json());
-                res.innerHTML = `<div class="parchment col-span-full"><h3 class="text-xl">${w.title}</h3><p>${w.extract}</p></div>` + 
-                    m.releases.map(r => `<div class="parchment p-2 text-center text-[10px]"><p class="font-bold">${r.title}</p></div>`).join('');
+                res.innerHTML = `<div class="parchment col-span-full"><h3 class="text-xl font-bold">${w.title}</h3><p class="text-sm mt-2 leading-relaxed">${w.extract}</p></div>` + 
+                    m.releases.map(r => `<div class="parchment p-2 text-center text-[10px] flex items-center justify-center"><p class="font-bold truncate w-full">${r.title}</p></div>`).join('');
             } catch(e) { res.innerHTML = "Non trouvé."; }
         }
     </script>

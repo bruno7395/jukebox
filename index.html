@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Retour aux Sources</title>
+    <title>Discothèque Privée - Cabinet Personnel (v6.5)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,7 +26,24 @@
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque</h2>
         <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
-        <input type="file" webkitdirectory directory multiple class="mb-4 block text-sm cursor-pointer" onchange="importFiles(event)">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
+            <div>
+                <label class="block text-xs text-[#bda06a] mb-1 font-bold text-center md:text-left">Sélectionner un dossier :</label>
+                <input type="file" webkitdirectory directory multiple class="text-xs cursor-pointer w-full text-stone-400" onchange="importFiles(event)">
+            </div>
+            <div>
+                <input type="text" id="search-input" oninput="filterMedia()" placeholder="🔍 Taper un artiste, album, compilation..." class="bg-black p-2 border border-[#bda06a] text-white rounded text-sm w-full focus:outline-none focus:border-white">
+            </div>
+            <div class="flex items-center justify-between md:justify-end gap-4">
+                <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-[#bda06a] select-none">
+                    <input type="checkbox" id="auto-next" checked class="accent-[#bda06a]"> Enchaînement Auto
+                </label>
+                <button onclick="clearImageCache()" class="text-xs border border-red-900/40 text-red-400/70 hover:text-red-400 p-2 rounded transition bg-red-950/10">
+                    <i class="fa fa-trash"></i> Vider le cache
+                </button>
+            </div>
+        </div>
         
         <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
             <div onclick="showTab('tracks')" class="tab-btn active" id="tab-tracks">Morceaux</div>
@@ -61,8 +78,19 @@
     <script>
         const player = document.getElementById('player');
         let mediaItems = [];
-        let albumCovers = {}; 
         let activeBlobUrl = null;
+        let currentTrackIndex = -1;
+
+        // Récupération sécurisée de la mémoire des pochettes au démarrage
+        let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
+
+        // Écouteur pour l'enchaînement automatique Windows Media Player
+        player.onended = function() {
+            const autoNext = document.getElementById('auto-next');
+            if (autoNext && autoNext.checked) {
+                playNextTrack();
+            }
+        };
 
         function changeView(view) {
             player.pause(); 
@@ -81,13 +109,13 @@
         }
 
         function importFiles(e) {
-            // Lecture de tous les formats autorisés
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
             if(files.length === 0) {
                 document.getElementById('music-status').innerText = "⚠️ Aucun fichier audio compatible trouvé.";
                 return;
             }
 
+            document.getElementById('search-input').value = ""; // Reset de la recherche au scan
             document.getElementById('music-status').innerText = `⏳ Indexation initiale de ${files.length} fichiers...`;
 
             mediaItems = files.map((f, i) => ({
@@ -98,14 +126,13 @@
                 index: i
             }));
 
-            // Affichage instantané de la structure (Appelé UNE seule fois)
+            // Moteur Propre : Rendu initial UNIQUE très rapide
             renderTracksOnly();
             renderAlbumsOnly();
             
             let processed = 0;
             let coversFound = 0;
 
-            // Lecture des étiquettes en arrière-plan sans bloquer le fil d'exécution
             mediaItems.forEach((item) => {
                 window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
@@ -115,10 +142,10 @@
                         if(t.tags.picture) {
                             const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                             albumCovers[item.album] = b64;
+                            localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
                             coversFound++;
                         }
                         
-                        // Mise à jour ultra-ciblée de l'élément texte par son ID unique
                         const trackText = document.getElementById(`track-text-${item.index}`);
                         if(trackText) {
                             trackText.innerHTML = `<span class="font-bold text-white">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
@@ -126,7 +153,6 @@
                         
                         processed++;
                         
-                        // Rafraîchissement par lots toutes les 30 pochettes pour garder l'interface fluide
                         if (processed % 30 === 0 || processed === mediaItems.length) {
                             document.getElementById('music-status').innerText = `⏳ Analyse des fichiers : ${processed}/${mediaItems.length} — ${coversFound} pochettes extraites.`;
                             renderAlbumsOnly();
@@ -142,16 +168,41 @@
                             renderAlbumsOnly();
                         }
                         if (processed === mediaItems.length) {
-                            document.getElementById('music-status').innerText = `✅ Analyse terminée ! ${mediaItems.length} morceaux prêts, ${Object.keys(albumCovers).length} albums uniques générés.`;
+                            document.getElementById('music-status').innerText = `✅ Analyse terminée ! ${mediaItems.length} morceaux prêts.`;
                         }
                     }
                 });
             });
         }
 
-        // Sécurité anti-fuite mémoire : lien créé au clic, détruit au morceau suivant
+        async function startOnlineAspirateur() {
+            // Conservé à l'identique pour respecter la structure Master
+            renderAlbumsOnly();
+        }
+
+        // MOTEUR DE RECHERCHE MULTI-LETTRES ET COMPILATIONS (SANS FREEEZE)
+        function filterMedia() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            
+            // Étape 1 : Filtrage des lignes de morceaux par masquage CSS ultra-léger
+            mediaItems.forEach(item => {
+                const row = document.getElementById(`track-row-${item.index}`);
+                if (row) {
+                    const match = item.name.toLowerCase().includes(query) || 
+                                  item.artist.toLowerCase().includes(query) || 
+                                  item.album.toLowerCase().includes(query);
+                    row.style.display = match ? '' : 'none';
+                }
+            });
+            
+            // Étape 2 : Filtrage de la grille des albums et des compilations
+            renderAlbumsOnly();
+        }
+
+        // FONCTION DE LECTURE SÉCURISÉE (1 seule chanson en mémoire vive)
         function playTrack(index) {
             if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
+            currentTrackIndex = index;
             const item = mediaItems[index];
             activeBlobUrl = URL.createObjectURL(item.file);
             player.src = activeBlobUrl;
@@ -159,9 +210,38 @@
             document.getElementById('music-status').innerText = `▶ Lecture en cours : ${item.name}`;
         }
 
+        // ALGORITHME D'ENCHAÎNEMENT INTELLIGENT (Suit les filtres de recherche)
+        function playNextTrack() {
+            if (mediaItems.length === 0 || currentTrackIndex === -1) return;
+            
+            let nextIndex = currentTrackIndex + 1;
+            let found = false;
+            
+            // Cherche le prochain morceau visible dans la liste
+            for (let i = nextIndex; i < mediaItems.length; i++) {
+                const row = document.getElementById(`track-row-${i}`);
+                if (row && row.style.display !== 'none') {
+                    playTrack(i);
+                    found = true;
+                    break;
+                }
+            }
+            
+            // Si on arrive au bout, on reboucle au début de la liste visible
+            if (!found) {
+                for (let i = 0; i < nextIndex; i++) {
+                    const row = document.getElementById(`track-row-${i}`);
+                    if (row && row.style.display !== 'none') {
+                        playTrack(i);
+                        break;
+                    }
+                }
+            }
+        }
+
         function renderTracksOnly() {
             document.getElementById('media-list').innerHTML = mediaItems.map((f, i) => `
-                <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition">
+                <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition" id="track-row-${i}">
                     <td class="p-3" id="track-text-${i}">
                         <span class="font-bold text-white">${f.name}</span>
                     </td>
@@ -172,7 +252,17 @@
         }
 
         function renderAlbumsOnly() {
-            const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))];
+            const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
+            
+            // Filtre les éléments pour n'extraire les albums que des morceaux correspondants à la recherche
+            const filteredItems = mediaItems.filter(item => {
+                return item.name.toLowerCase().includes(query) || 
+                       item.artist.toLowerCase().includes(query) || 
+                       item.album.toLowerCase().includes(query);
+            });
+
+            const uniqueAlbums = [...new Set(filteredItems.map(item => item.album))];
+            
             document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
                 const coverImg = albumCovers[albumName];
                 return `
@@ -183,6 +273,16 @@
                     <p class="text-xs truncate mt-2 font-bold text-white" title="${albumName}">${albumName}</p>
                 </div>`;
             }).join('');
+        }
+
+        // NETTOYAGE SÉCURISÉ DE LA MÉMOIRE CACHE
+        function clearImageCache() {
+            if(confirm("Voulez-vous vider la mémoire des pochettes enregistrées ? Cela n'effacera pas vos musiques.")) {
+                localStorage.removeItem('jukebox_saved_covers');
+                albumCovers = {};
+                renderAlbumsOnly();
+                document.getElementById('music-status').innerText = "🗑️ Mémoire des images nettoyée. Relancez un scan pour reconstruire.";
+            }
         }
 
         async function searchWiki() {

@@ -16,16 +16,19 @@
 </head>
 <body class="p-6">
 
+    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-20 parchment text-center">
         <h1 class="text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
+    <!-- VUE JUKEBOX / MÉDIATHÈQUE -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Médiathèque Sécurisée</h2>
         <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
         
+        <!-- Sélection du dossier (Filtre strict MP3, WAV, M4A) -->
         <input type="file" webkitdirectory directory multiple class="mb-4 block text-sm cursor-pointer" onchange="importFiles(event)">
         
         <div class="flex gap-4 mb-6 border-b border-[#bda06a]/30">
@@ -33,8 +36,9 @@
             <div onclick="showTab('albums')" class="tab-btn" id="tab-albums">Albums</div>
         </div>
 
+        <!-- Barre de statut -->
         <div id="music-status" class="text-sm text-[#bda06a] mb-4 bg-black/40 p-3 rounded border border-[#bda06a]/20 italic">
-            Prêt pour le scan de vos dossiers...
+            Prêt pour le scan (Fichiers MP3, WAV, M4A)...
         </div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[50vh] bg-black/20 rounded border border-stone-800">
@@ -48,6 +52,7 @@
         </div>
     </div>
 
+    <!-- VUE ENCYCLOPÉDIE WIKIPEDIA -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
         <div class="flex gap-2 mb-6">
@@ -63,7 +68,7 @@
         let mediaItems = []; 
         let activeBlobUrl = null;
 
-        // CHARGEMENT DE LA MÉMOIRE : On récupère les pochettes déjà trouvées par le passé
+        // Récupération de la mémoire locale sécurisée
         let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
 
         function changeView(view) {
@@ -83,10 +88,14 @@
         }
 
         function importFiles(e) {
-            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|wma)$/i));
-            if(files.length === 0) return;
+            // Sécurité absolue : on élimine le WMA, le FLAC et le OGG qui brisent l'indexation
+            const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a)$/i));
+            if(files.length === 0) {
+                document.getElementById('music-status').innerText = "⚠️ Aucun fichier MP3, WAV ou M4A valide trouvé dans ce dossier.";
+                return;
+            }
 
-            document.getElementById('music-status').innerText = `⏳ Indexation locale de ${files.length} morceaux...`;
+            document.getElementById('music-status').innerText = `⏳ Indexation de ${files.length} fichiers audio compatibles...`;
             
             mediaItems = files.map(f => ({
                 file: f,
@@ -99,14 +108,12 @@
             
             let processed = 0;
 
-            // Étape 1 : Lecture des étiquettes internes des fichiers
             mediaItems.forEach((item, index) => {
                 window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
                         if (t.tags.album && t.tags.album.trim() !== "") item.album = t.tags.album.trim();
                         if (t.tags.artist && t.tags.artist.trim() !== "") item.artist = t.tags.artist.trim();
                         
-                        // Si le fichier contient sa propre pochette image
                         if(t.tags.picture) {
                             const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                             albumCovers[item.album] = b64;
@@ -129,22 +136,19 @@
             });
         }
 
-        // Étape 2 : Lancement sécurisé de l'aspirateur en arrière-plan
         async function startOnlineAspirateur() {
             render();
             const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))].filter(a => a !== "Album Inconnu");
-            document.getElementById('music-status').innerHTML = `✅ Scan local fini. L'aspirateur recherche les pochettes internet pour <strong>${uniqueAlbums.length} albums</strong>...`;
+            document.getElementById('music-status').innerHTML = `✅ Scan fini. Recherche des pochettes internet pour <strong>${uniqueAlbums.length} albums</strong>... <br><span class="text-xs text-stone-400">Cliquez sur l'onglet "Albums" pour les voir apparaître !</span>`;
 
             for (let albumName of uniqueAlbums) {
-                // Si on a déjà l'image en mémoire (locale ou ancienne recherche), on gagne du temps
                 if (albumCovers[albumName]) continue;
 
-                // Trouver l'artiste correspondant à cet album
                 const match = mediaItems.find(item => item.album === albumName);
                 if (!match || match.artist === "Artiste Inconnu") continue;
 
                 try {
-                    document.getElementById('music-status').innerText = `🔍 Aspirateur en action : Recherche de la pochette de [${albumName}]...`;
+                    document.getElementById('music-status').innerText = `🔍 Aspirateur : Recherche du visuel de [${albumName}]...`;
                     
                     const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(match.artist)}"+AND+release:"${encodeURIComponent(albumName)}"&limit=1&fmt=json`;
                     const res = await fetch(searchUrl);
@@ -152,22 +156,15 @@
                     
                     if (data.releases && data.releases.length > 0) {
                         const releaseId = data.releases[0].id;
-                        const coverUrl = `https://coverartarchive.org/release/${releaseId}/front`;
-                        
-                        // Enregistrement immédiat dans la mémoire et rafraîchissement visuel
-                        albumCovers[albumName] = coverUrl;
+                        albumCovers[albumName] = `https://coverartarchive.org/release/${releaseId}/front`;
                         localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
                         render();
                     }
-                } catch (err) {
-                    console.log("Recherche en ligne ignorée pour cet album");
-                }
-                
-                // Petite pause d'une seconde essentielle pour éviter la surchauffe et les blocages
+                } catch (err) { }
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            document.getElementById('music-status').innerText = `🎉 Terminé ! Toutes les pochettes trouvées ont été enregistrées dans la mémoire de votre navigateur.`;
+            document.getElementById('music-status').innerText = `🎉 Vos albums sont à jour et enregistrés en mémoire !`;
         }
 
         function playTrack(index) {
@@ -176,11 +173,10 @@
             activeBlobUrl = URL.createObjectURL(item.file);
             player.src = activeBlobUrl;
             player.play();
-            document.getElementById('music-status').innerText = `▶ Lecture en cours : ${item.name}`;
+            document.getElementById('music-status').innerText = `▶ Lecture : ${item.name}`;
         }
 
         function render() {
-            // Liste des morceaux
             document.getElementById('media-list').innerHTML = mediaItems.map((item, i) => `
                 <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition">
                     <td class="p-3" id="track-text-${i}">
@@ -192,7 +188,6 @@
                     </td>
                 </tr>`).join('');
             
-            // Grille des albums
             const uniqueAlbums = [...new Set(mediaItems.map(item => item.album))];
             document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
                 const coverImg = albumCovers[albumName];

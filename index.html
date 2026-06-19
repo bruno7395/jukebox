@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel (v7.2)</title>
+    <title>Discothèque Privée - Cabinet Personnel (v7.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,10 +30,10 @@
 
     <!-- VUE JUKEBOX -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome & Persistante</h2>
-        <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Persistante v7.3</h2>
+        <button onclick="backToHome()" class="underline mb-4 block hover:text-white transition">Retour Accueil</button>
         
-        <!-- BARRE D'OUTILS ET DE TRI -->
+        <!-- BARRE D'OUTILS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
             <div>
                 <label id="folder-label" class="block text-xs text-[#bda06a] mb-1 font-bold">Sélectionner ou réactiver un dossier :</label>
@@ -44,7 +44,6 @@
                 <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 text-stone-500 hover:text-white text-xs"><i class="fa fa-times"></i></button>
             </div>
             <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 text-xs text-[#bda06a]">
-                <!-- Boutons de Tri Intelligent -->
                 <button onclick="sortByArtist()" class="bg-[#26211c] border border-[#bda06a] px-2 py-1 rounded hover:bg-[#bda06a] hover:text-black transition font-bold"><i class="fa fa-sort-alpha-down"></i> Artiste ➔ Album</button>
                 <button onclick="sortByName()" class="bg-[#26211c] border border-[#bda06a] px-2 py-1 rounded hover:bg-[#bda06a] hover:text-black transition font-bold">🔤 Titre</button>
                 
@@ -54,7 +53,7 @@
                 <label class="inline-flex items-center gap-1 cursor-pointer select-none">
                     <input type="checkbox" id="shuffle-mode" class="accent-[#bda06a]"> <i class="fa fa-random"></i>
                 </label>
-                <button onclick="clearAllCache()" title="Réinitialiser l'application" class="border border-red-900/40 text-red-400/70 p-1.5 rounded bg-red-950/10 hover:text-red-400 transition">
+                <button onclick="clearAllCache()" title="Réinitialiser" class="border border-red-900/40 text-red-400/70 p-1.5 rounded bg-red-950/10 hover:text-red-400 transition">
                     <i class="fa fa-trash"></i>
                 </button>
             </div>
@@ -66,7 +65,7 @@
         </div>
 
         <div id="music-status" class="text-sm text-[#bda06a] mb-4 bg-black/40 p-3 rounded border border-[#bda06a]/20 italic text-center sm:text-left">
-            Chargement du Cabinet...
+            Chargement...
         </div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[45vh] bg-black/20 rounded border border-stone-800">
@@ -75,7 +74,7 @@
         
         <div id="view-albums" class="hidden grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 max-h-[45vh] overflow-y-auto p-1"></div>
         
-        <!-- LECTEUR DE CONTRÔLE SUPRÊME -->
+        <!-- LECTEUR DE CONTRÔLE -->
         <div class="fixed bottom-0 left-0 w-full bg-[#161310] p-4 border-t border-[#bda06a] z-50 flex flex-col gap-3 shadow-2xl">
             <div class="w-full flex items-center gap-3 px-1">
                 <span id="time-current" class="text-[11px] font-mono text-stone-400 min-w-[35px]">00:00</span>
@@ -85,9 +84,9 @@
             
             <div class="w-full flex items-center justify-between px-1">
                 <div class="flex items-center gap-6 text-2xl text-[#bda06a]">
-                    <button onclick="playPrevTrack()" class="p-2 hover:text-white active:scale-95 transition-transform"><i class="fa fa-step-backward"></i></button>
-                    <button onclick="togglePlay()" class="p-2 w-10 h-10 flex items-center justify-center bg-[#bda06a] text-black rounded-full active:scale-95 transition-transform"><i id="main-play-icon" class="fa fa-play text-base pl-0.5"></i></button>
-                    <button onclick="playNextTrack()" class="p-2 hover:text-white active:scale-95 transition-transform"><i class="fa fa-step-forward"></i></button>
+                    <button onclick="playPrevTrack()" class="p-2 hover:text-white"><i class="fa fa-step-backward"></i></button>
+                    <button onclick="togglePlay()" class="p-2 w-10 h-10 flex items-center justify-center bg-[#bda06a] text-black rounded-full"><i id="main-play-icon" class="fa fa-play text-base pl-0.5"></i></button>
+                    <button onclick="playNextTrack()" class="p-2 hover:text-white"><i class="fa fa-step-forward"></i></button>
                 </div>
                 
                 <div class="flex items-center gap-2 text-[#bda06a]">
@@ -103,13 +102,12 @@
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie Visuelle</h2>
         <div class="flex gap-2 mb-6">
             <input type="text" id="wiki-input" onkeypress="if(event.key === 'Enter') searchWiki()" class="bg-black p-2 border border-[#bda06a] flex-grow text-white rounded focus:outline-none">
-            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded hover:bg-[#e5c185] transition">Chercher</button>
-            <button onclick="changeView('jukebox')" class="border p-2 rounded hover:bg-white/5 transition">Retour</button>
+            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded">Chercher</button>
+            <button onclick="changeView('jukebox')" class="border p-2 rounded">Retour</button>
         </div>
         <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
-    <!-- AUDIO CACHÉ -->
     <audio id="player" class="hidden"></audio>
 
     <script>
@@ -122,22 +120,24 @@
         let activeBlobUrl = null;
         let currentTrackIndex = -1;
 
-        // Lecture des deux mémoires au démarrage de l'écran
         let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
         let cachedTracks = JSON.parse(localStorage.getItem('jukebox_cached_tracks')) || [];
 
+        // Sécurité anti-perte au chargement
         window.onload = function() {
+            let savedView = localStorage.getItem('jukebox_current_view') || 'home';
+            
             if (cachedTracks.length > 0) {
-                // On remonte l'arborescence instantanément (sans fichiers physiques liés pour le moment)
                 mediaItems = cachedTracks.map(t => ({ ...t, file: null }));
                 renderTracksOnly();
                 renderAlbumsOnly();
-                document.getElementById('music-status').innerHTML = `📋 <strong>${mediaItems.length} morceaux</strong> chargés depuis la mémoire ! <br><span class="text-xs text-amber-400 font-bold animate-pulse">⚠️ Cliquez sur le dossier pour activer instantanément la lecture (Reconnexion Éclair).</span>`;
-                document.getElementById('folder-label').innerText = "🔴 Réactiver le son :";
-                document.getElementById('folder-label').className = "block text-xs text-red-400 mb-1 font-bold animate-pulse";
+                updateFolderLabelStatus(false);
             } else {
-                document.getElementById('music-status').innerText = "Prêt pour votre premier scan complet (MP3, FLAC, OGG, WAV, M4A)...";
+                document.getElementById('music-status').innerText = "Prêt pour votre premier scan complet...";
             }
+            
+            // On restaure l'écran exact où se trouvait l'utilisateur
+            changeView(savedView);
         };
 
         player.onended = function() {
@@ -179,6 +179,7 @@
         }
 
         function changeView(view) {
+            localStorage.setItem('jukebox_current_view', view);
             if (view === 'home') {
                 player.pause(); mainPlayIcon.className = 'fa fa-play text-base pl-0.5';
                 if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
@@ -187,6 +188,10 @@
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
             document.getElementById('jukebox-view').style.display = (view === 'jukebox') ? 'block' : 'none';
             document.getElementById('wiki-view').style.display = (view === 'wiki') ? 'block' : 'none';
+        }
+
+        function backToHome() {
+            changeView('home');
         }
 
         function showTab(tab) {
@@ -203,25 +208,32 @@
             return cleanName.trim(); 
         }
 
-        // SYSTÈME DE TRI DE HAUTE PRÉCISION
+        function updateFolderLabelStatus(connected) {
+            const lbl = document.getElementById('folder-label');
+            if (connected) {
+                document.getElementById('music-status').innerHTML = `🟢 <strong>Cabinet opérationnel.</strong> Lecture débloquée !`;
+                lbl.innerText = "🟢 Dossier Connecté :";
+                lbl.className = "block text-xs text-green-400 mb-1 font-bold";
+            } else {
+                document.getElementById('music-status').innerHTML = `📋 <strong>${mediaItems.length} morceaux</strong> en mémoire. <br><span class="text-xs text-amber-400 font-bold animate-pulse">⚠️ Réactivez le dossier musical ci-contre pour écouter.</span>`;
+                lbl.innerText = "🔴 Réactiver le son :";
+                lbl.className = "block text-xs text-red-400 mb-1 font-bold animate-pulse";
+            }
+        }
+
         function sortByArtist() {
             if (mediaItems.length === 0) return;
             removeTrackHighlight(currentTrackIndex); currentTrackIndex = -1;
-            
             mediaItems.sort((a, b) => {
                 let compArtist = getBestArtist(a).localeCompare(getBestArtist(b));
-                if (compArtist !== 0) return compArtist; // Tri principal : Artiste
-                
+                if (compArtist !== 0) return compArtist;
                 let compAlbum = a.album.localeCompare(b.album);
-                if (compAlbum !== 0) return compAlbum; // Tri secondaire : Album (pour séparer compilations/originaux)
-                
-                return a.name.localeCompare(b.name); // Tri tertiaire : Nom de fichier
+                if (compAlbum !== 0) return compAlbum;
+                return a.name.localeCompare(b.name);
             });
-
-            // Réindexation propre après déplacement
             mediaItems.forEach((item, idx) => item.index = idx);
             renderTracksOnly(); renderAlbumsOnly();
-            document.getElementById('music-status').innerText = "🗂️ Bibliothèque classée : Artiste ➔ Album ➔ Chanson.";
+            document.getElementById('music-status').innerText = "🗂️ Classé par : Artiste ➔ Album ➔ Chanson.";
         }
 
         function sortByName() {
@@ -230,39 +242,38 @@
             mediaItems.sort((a, b) => a.name.localeCompare(b.name));
             mediaItems.forEach((item, idx) => item.index = idx);
             renderTracksOnly(); renderAlbumsOnly();
-            document.getElementById('music-status').innerText = "🔤 Bibliothèque classée par titres de A à Z.";
+            document.getElementById('music-status').innerText = "🔤 Classé par titres de A à Z.";
         }
 
         function importFiles(e) {
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             if(files.length === 0) return;
 
-            // PARADE DE RECONNEXION ÉCLAIR : Si on a déjà des données en cache
-            if (mediaItems.length > 0 && cachedTracks.length > 0) {
-                document.getElementById('music-status').innerText = "⚡ Reconnexion éclair des fichiers musicaux...";
+            // RECONNEXION ÉCLAIR SECURISEE
+            if (mediaItems.length > 0) {
                 let linked = 0;
                 mediaItems.forEach(item => {
                     const match = files.find(f => f.name === item.name);
                     if (match) { item.file = match; linked++; }
                 });
                 if (linked > 0) {
-                    document.getElementById('music-status').innerHTML = `🟢 <strong>${linked} morceaux activés et prêts !</strong> Lecture débloquée.`;
-                    document.getElementById('folder-label').innerText = "🟢 Dossier Connecté :";
-                    document.getElementById('folder-label').className = "block text-xs text-green-400 mb-1 font-bold";
-                    return; // Fin immédiate, le Jukebox est réveillé !
+                    updateFolderLabelStatus(true);
+                    return;
                 }
             }
 
-            // PREMIER SCAN ET INDEXATION DE TAGS (Seulement si la mémoire était vide)
+            // PREMIER SCAN (Sauvegarde immédiate de la structure de secours)
             document.getElementById('search-input').value = "";
-            document.getElementById('music-status').innerText = `⏳ Premier Scan global : Indexation de ${files.length} fichiers...`;
-
             mediaItems = files.map((f, i) => ({
                 file: f, name: f.name, album: "Album Inconnu", artist: "Artiste Inconnu", index: i
             }));
 
+            // Sauvegarde instantanée dans le navigateur pour parer les rafraîchissements
+            saveTracksToCache();
             renderTracksOnly(); renderAlbumsOnly();
+            
             let processed = 0; let coversFound = 0;
+            document.getElementById('music-status').innerText = `⏳ Premier Scan : Indexation de ${files.length} fichiers...`;
 
             mediaItems.forEach((item) => {
                 window.jsmediatags.read(item.file, {
@@ -279,30 +290,27 @@
                         if(txt) txt.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
                         
                         processed++;
-                        if (processed % 30 === 0 || processed === mediaItems.length) {
+                        if (processed % 40 === 0 || processed === mediaItems.length) {
                             document.getElementById('music-status').innerText = `⏳ Analyse : ${processed}/${mediaItems.length} — ${coversFound} images.`;
                             renderAlbumsOnly();
+                            saveTracksToCache(); // Sauvegarde par lots
                         }
-                        if (processed === mediaItems.length) { finalizeScan(); }
+                        if (processed === mediaItems.length) { updateFolderLabelStatus(true); }
                     },
                     onError: () => {
                         const txt = document.getElementById(`track-text-${item.index}`);
                         if(txt) txt.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-stone-500">${getBestArtist(item)} — Format Spécial</span>`;
                         processed++;
-                        if (processed % 30 === 0 || processed === mediaItems.length) { renderAlbumsOnly(); }
-                        if (processed === mediaItems.length) { finalizeScan(); }
+                        if (processed % 40 === 0 || processed === mediaItems.length) { renderAlbumsOnly(); saveTracksToCache(); }
+                        if (processed === mediaItems.length) { updateFolderLabelStatus(true); }
                     }
                 });
             });
         }
 
-        function finalizeScan() {
-            // Sauvegarde de l'arborescence texte pour le futur sans rechargement
+        function saveTracksToCache() {
             const minimalCache = mediaItems.map(m => ({ name: m.name, artist: m.artist, album: m.album, index: m.index }));
             localStorage.setItem('jukebox_cached_tracks', JSON.stringify(minimalCache));
-            document.getElementById('music-status').innerHTML = `✅ Collection verrouillée en mémoire ! (${mediaItems.length} morceaux)`;
-            document.getElementById('folder-label').innerText = "🟢 Dossier Connecté :";
-            document.getElementById('folder-label').className = "block text-xs text-green-400 mb-1 font-bold";
         }
 
         function filterMedia() {
@@ -321,25 +329,24 @@
 
         function clearSearch() { document.getElementById('search-input').value = ""; filterMedia(); }
 
+        // LA SOLUTION IDÉALE : CLIQUE SUR ALBUM ➔ FILTRE LES MORCEAUX DE CET ALBUM IMMÉDIATEMENT
+        function viewAlbumTracks(albumName) {
+            document.getElementById('search-input').value = albumName;
+            filterMedia();
+            showTab('tracks'); // Ouvre l'onglet morceaux filtré !
+        }
+
         function quickSearchArtist(index) {
             const item = mediaItems[index];
             document.getElementById('wiki-input').value = getBestArtist(item);
             changeView('wiki'); searchWiki();
         }
 
-        function quickSearchArtistFromAlbum(albumName) {
-            const match = mediaItems.find(item => item.album === albumName);
-            if (match) {
-                document.getElementById('wiki-input').value = getBestArtist(match);
-                changeView('wiki'); searchWiki();
-            }
-        }
-
         function playTrack(index) {
             if (index < 0 || index >= mediaItems.length) return;
             const item = mediaItems[index];
             if (!item.file) {
-                alert("⚠️ Son inactif : Veuillez d'abord cliquer sur le bouton de dossier en haut pour réactiver la lecture instantanée !");
+                alert("⚠️ Son inactif : Veuillez d'abord sélectionner votre dossier en haut pour réactiver la lecture en 1 seconde !");
                 return;
             }
             removeTrackHighlight(currentTrackIndex);
@@ -369,6 +376,7 @@
             if (icon) icon.className = 'fa fa-play';
         }
 
+        // ENCHAINEMENT FILTRÉ
         function getVisibleTrackIndices() {
             return mediaItems
                 .filter(item => {
@@ -420,7 +428,8 @@
             document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
                 const coverImg = albumCovers[albumName];
                 return `
-                <div onclick="quickSearchArtistFromAlbum('${albumName.replace(/'/g, "\\'")}')" class="p-2 sm:p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow cursor-pointer hover:border-white transition group">
+                <!-- Un clic ici ouvre maintenant la liste des morceaux de cet album précis -->
+                <div onclick="viewAlbumTracks('${albumName.replace(/'/g, "\\'")}')" class="p-2 sm:p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow cursor-pointer hover:border-white transition group">
                     <div class="w-full aspect-square border border-[#bda06a]/50 bg-stone-950 flex items-center justify-center overflow-hidden rounded relative">
                         ${coverImg ? `<img src="${coverImg}" class="grid-thumb w-full h-full object-cover">` : `<div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-3xl sm:text-4xl text-stone-600 mb-1"></i></div>`}
                     </div>
@@ -430,19 +439,18 @@
         }
 
         function clearAllCache() {
-            if(confirm("Voulez-vous vider la mémoire complète (Pochettes + Liste enregistrée) ?")) {
+            if(confirm("Voulez-vous réinitialiser le Jukebox ?")) {
                 localStorage.removeItem('jukebox_saved_covers'); localStorage.removeItem('jukebox_cached_tracks');
+                localStorage.removeItem('jukebox_current_view');
                 albumCovers = {}; mediaItems = []; renderTracksOnly(); renderAlbumsOnly();
-                document.getElementById('music-status').innerText = "🗑️ Tout a été effacé.";
-                document.getElementById('folder-label').innerText = "Sélectionner un dossier :";
-                document.getElementById('folder-label').className = "block text-xs text-[#bda06a] mb-1 font-bold";
+                changeView('home');
             }
         }
 
         async function searchWiki() {
             const q = document.getElementById('wiki-input').value; const res = document.getElementById('wiki-results');
             if(!q.trim()) return;
-            res.innerHTML = "<div class='col-span-full text-[#bda06a] italic text-center'>Analyse de la biographie et des livrets d'albums...</div>";
+            res.innerHTML = "<div class='col-span-full text-[#bda06a] italic text-center'>Analyse...</div>";
             try {
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const t = s.query.search[0].title;

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel (v7.7)</title>
+    <title>Discothèque Privée - Cabinet Personnel (v7.8)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,16 +21,19 @@
 </head>
 <body class="p-4 sm:p-6 mb-32">
 
+    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-10 sm:mt-20 parchment text-center">
         <h1 class="text-3xl sm:text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
+    <!-- VUE JUKEBOX -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome v7.7</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome v7.8</h2>
         <button onclick="backToHome()" class="underline mb-4 block hover:text-white transition">Retour Accueil</button>
         
+        <!-- BARRE D'OUTILS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
             <div>
                 <label id="folder-label" class="block text-xs text-[#bda06a] mb-1 font-bold">Sélectionner ou réactiver un dossier :</label>
@@ -70,6 +73,7 @@
         
         <div id="view-albums" class="hidden grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 max-h-[45vh] overflow-y-auto p-1"></div>
         
+        <!-- LECTEUR DE CONTRÔLE -->
         <div class="fixed bottom-0 left-0 w-full bg-[#161310] p-4 border-t border-[#bda06a] z-50 flex flex-col gap-3 shadow-2xl">
             <div class="w-full flex items-center gap-3 px-1">
                 <span id="time-current" class="text-[11px] font-mono text-stone-400 min-w-[35px]">00:00</span>
@@ -92,6 +96,7 @@
         </div>
     </div>
 
+    <!-- VUE ENCYCLOPÉDIE -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie Visuelle</h2>
         <div class="flex gap-2 mb-6">
@@ -170,8 +175,23 @@
             }
         }
 
+        // CORRECTION 1 & 2 : GESTION DES VUES ET COUPURE DU SON
         function changeView(view) {
             localStorage.setItem('jukebox_current_view', view);
+            
+            if (view === 'home') {
+                player.pause(); // Sécurité : On arrête net le son en revenant à l'accueil
+                mainPlayIcon.className = 'fa fa-play text-base pl-0.5';
+                if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
+                player.src = ""; 
+                removeTrackHighlight(currentTrackIndex); 
+                currentTrackIndex = -1;
+            }
+            
+            if (view === 'jukebox') {
+                clearSearch(); // Sécurité : On réinitialise la vue complète pour afficher tous les albums
+            }
+
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
             document.getElementById('jukebox-view').style.display = (view === 'jukebox') ? 'block' : 'none';
             document.getElementById('wiki-view').style.display = (view === 'wiki') ? 'block' : 'none';
@@ -186,17 +206,16 @@
             document.getElementById('tab-albums').className = (tab === 'albums') ? 'tab-btn active' : 'tab-btn';
         }
 
+        // PROTECTION ANTI-DOUBLON : Extraction stricte de l'Artiste
         function getBestArtist(item) {
-            if (item.artist && item.artist !== "Artiste Inconnu" && item.artist !== "Auteur" && item.artist.trim() !== "") { return item.artist; }
-            let cleanName = item.name.replace(/\.(mp3|wav|m4a|flac|ogg)$/i, '');
-            if (cleanName.includes('-')) { return cleanName.split('-')[0].trim(); }
-            return cleanName.trim(); 
+            if (item.artist && item.artist !== "Artiste Inconnu" && item.artist.trim() !== "") { return item.artist; }
+            return "Artiste Inconnu";
         }
 
         function updateFolderLabelStatus(connected) {
             const lbl = document.getElementById('folder-label');
             if (connected) {
-                document.getElementById('music-status').innerHTML = `🟢 <strong>Cabinet opérationnel !</strong> Tri hiérarchique activé.`;
+                document.getElementById('music-status').innerHTML = `🟢 <strong>Cabinet opérationnel !</strong> Tri hiérarchique actif.`;
                 lbl.innerText = "🟢 Dossier Connecté :";
                 lbl.className = "block text-xs text-green-400 mb-1 font-bold";
             } else {
@@ -221,6 +240,7 @@
             document.getElementById('music-status').innerText = "🗂️ Classé de A à Z par Chanteurs.";
         }
 
+        // INTELLIGENCE DE TRAJECTOIRE LOCALE POUR EVITER LES FAUX DOUBLONS
         function importFiles(e) {
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             if(files.length === 0) return;
@@ -245,14 +265,37 @@
             document.getElementById('search-input').value = "";
             
             if (!isReconnection) {
-                mediaItems = files.map((f, i) => ({
-                    file: f, name: f.name, album: "Album Inconnu", artist: "Artiste Inconnu", index: i
-                }));
+                mediaItems = files.map((f, i) => {
+                    // Analyse intelligente de l'arborescence locale (DossierArtiste/DossierAlbum)
+                    let guessedArtist = "Artiste Inconnu";
+                    let guessedAlbum = "Album Inconnu";
+                    if (f.webkitRelativePath) {
+                        const parts = f.webkitRelativePath.split('/');
+                        if (parts.length >= 3) {
+                            guessedAlbum = parts[parts.length - 2];
+                            guessedArtist = parts[parts.length - 3];
+                        }
+                    }
+                    if (guessedArtist === "Artiste Inconnu") {
+                        let cleanName = f.name.replace(/\.(mp3|wav|m4a|flac|ogg)$/i, '');
+                        if (cleanName.includes('-')) { guessedArtist = cleanName.split('-')[0].trim(); }
+                    }
+                    return { file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, index: i };
+                });
             } else {
                 let startIdx = mediaItems.length;
                 files.forEach(f => {
                     if (!mediaItems.find(item => item.name === f.name)) {
-                        mediaItems.push({ file: f, name: f.name, album: "Album Inconnu", artist: "Artiste Inconnu", index: startIdx++ });
+                        let guessedArtist = "Artiste Inconnu";
+                        let guessedAlbum = "Album Inconnu";
+                        if (f.webkitRelativePath) {
+                            const parts = f.webkitRelativePath.split('/');
+                            if (parts.length >= 3) {
+                                guessedAlbum = parts[parts.length - 2];
+                                guessedArtist = parts[parts.length - 3];
+                            }
+                        }
+                        mediaItems.push({ file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, index: startIdx++ });
                     }
                 });
             }
@@ -267,7 +310,7 @@
             document.getElementById('music-status').innerText = `⏳ Indexation initiale : 0 / ${totalToScan} morceaux...`;
 
             mediaItems.forEach((item) => {
-                if (item.file && (item.artist === "Artiste Inconnu" || item.album === "Album Inconnu")) {
+                if (item.file) {
                     window.jsmediatags.read(item.file, {
                         onSuccess: (t) => {
                             try {
@@ -299,25 +342,16 @@
                             }
                         },
                         onError: () => {
-                            try {
-                                const txt = document.getElementById(`track-text-${item.index}`);
-                                if(txt) txt.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-stone-500">${getBestArtist(item)} — Format Spécial</span>`;
-                            } catch(e) {}
-                            finally {
-                                processed++;
-                                if (processed % 100 === 0 || processed === totalToScan) {
-                                    document.getElementById('music-status').innerText = `⏳ Analyse en cours : ${processed} / ${totalToScan} morceaux...`;
-                                    renderAlbumsOnly();
-                                }
-                                if (processed === totalToScan) { finalizeScan(); }
+                            processed++;
+                            if (processed % 100 === 0 || processed === totalToScan) {
+                                document.getElementById('music-status').innerText = `⏳ Analyse en cours : ${processed} / ${totalToScan} morceaux...`;
+                                renderAlbumsOnly();
                             }
+                            if (processed === totalToScan) { finalizeScan(); }
                         }
                     });
                 } else {
                     processed++;
-                    if (processed % 100 === 0 || processed === totalToScan) {
-                        document.getElementById('music-status').innerText = `⏳ Analyse en cours : ${processed} / ${totalToScan} morceaux...`;
-                    }
                     if (processed === totalToScan) { finalizeScan(); }
                 }
             });
@@ -325,7 +359,7 @@
 
         function finalizeScan() {
             saveTracksToCache();
-            sortByArtist(); // Force l'ordre idéal dès la fin du scan !
+            sortByArtist(); 
         }
 
         function saveTracksToCache() {
@@ -445,19 +479,18 @@
                 </tr>`).join('');
         }
 
-        // LE REVOLUTIONNAIRE : REGROUPEMENT UNIQUE ARTISTE + ALBUM ET TRI DE DEPART ALPHABETIQUE
+        // FUSION ET FILTRAGE UNIQUE SANS DUPLICATION PAR TITRE
         function renderAlbumsOnly() {
             const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             const filteredItems = mediaItems.filter(item => {
                 return item.name.toLowerCase().includes(query) || item.artist.toLowerCase().includes(query) || item.album.toLowerCase().includes(query);
             });
             
-            // On crée un dictionnaire basé sur le couple unique "Artiste + Album"
             const albumMap = {};
             filteredItems.forEach(item => {
                 const artistName = getBestArtist(item);
                 const albumName = item.album;
-                const uniqueKey = `${artistName} ||| ${albumName}`;
+                const uniqueKey = `${artistName} ||| ${albumName}`; // Fusion stricte par couple Artiste / Album
                 if (!albumMap[uniqueKey]) {
                     albumMap[uniqueKey] = {
                         album: albumName,
@@ -467,7 +500,6 @@
                 }
             });
 
-            // Tri absolu des blocs d'images : Classé par le nom de l'Artiste d'abord !
             const sortedKeys = Object.keys(albumMap).sort((a, b) => a.localeCompare(b));
             
             document.getElementById('view-albums').innerHTML = sortedKeys.map(key => {

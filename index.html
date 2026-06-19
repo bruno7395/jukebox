@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel (v7.8)</title>
+    <title>Discothèque Privée - Cabinet Personnel (v7.9)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,19 +21,16 @@
 </head>
 <body class="p-4 sm:p-6 mb-32">
 
-    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-10 sm:mt-20 parchment text-center">
         <h1 class="text-3xl sm:text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
-    <!-- VUE JUKEBOX -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome v7.8</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome v7.9</h2>
         <button onclick="backToHome()" class="underline mb-4 block hover:text-white transition">Retour Accueil</button>
         
-        <!-- BARRE D'OUTILS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
             <div>
                 <label id="folder-label" class="block text-xs text-[#bda06a] mb-1 font-bold">Sélectionner ou réactiver un dossier :</label>
@@ -73,7 +70,6 @@
         
         <div id="view-albums" class="hidden grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 max-h-[45vh] overflow-y-auto p-1"></div>
         
-        <!-- LECTEUR DE CONTRÔLE -->
         <div class="fixed bottom-0 left-0 w-full bg-[#161310] p-4 border-t border-[#bda06a] z-50 flex flex-col gap-3 shadow-2xl">
             <div class="w-full flex items-center gap-3 px-1">
                 <span id="time-current" class="text-[11px] font-mono text-stone-400 min-w-[35px]">00:00</span>
@@ -96,7 +92,6 @@
         </div>
     </div>
 
-    <!-- VUE ENCYCLOPÉDIE -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie Visuelle</h2>
         <div class="flex gap-2 mb-6">
@@ -175,12 +170,11 @@
             }
         }
 
-        // CORRECTION 1 & 2 : GESTION DES VUES ET COUPURE DU SON
         function changeView(view) {
             localStorage.setItem('jukebox_current_view', view);
             
             if (view === 'home') {
-                player.pause(); // Sécurité : On arrête net le son en revenant à l'accueil
+                player.pause(); // Résolution 1 : Coupure nette immédiate du son
                 mainPlayIcon.className = 'fa fa-play text-base pl-0.5';
                 if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
                 player.src = ""; 
@@ -189,7 +183,7 @@
             }
             
             if (view === 'jukebox') {
-                clearSearch(); // Sécurité : On réinitialise la vue complète pour afficher tous les albums
+                clearSearch(); // Résolution 2 : Réinitialisation propre à l'ouverture (affiche tout)
             }
 
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
@@ -206,16 +200,25 @@
             document.getElementById('tab-albums').className = (tab === 'albums') ? 'tab-btn active' : 'tab-btn';
         }
 
-        // PROTECTION ANTI-DOUBLON : Extraction stricte de l'Artiste
         function getBestArtist(item) {
             if (item.artist && item.artist !== "Artiste Inconnu" && item.artist.trim() !== "") { return item.artist; }
             return "Artiste Inconnu";
         }
 
+        // INTELLIGENCE MULTI-CD : Nettoie les mentions CD1, Vol.3 etc., pour la fusion visuelle
+        function getCleanAlbumName(item) {
+            let alb = item.album || "Album Inconnu";
+            let cleaned = alb.replace(/\s*[\(\[-]?\s*(cd|dis[qu]+e|vol|volume)\s*\d+\s*[\)\]-]?/i, '').trim();
+            if (!cleaned || cleaned.toLowerCase() === "cd" || cleaned.toLowerCase() === "disque") {
+                return item.guessedAlbum || alb;
+            }
+            return cleaned;
+        }
+
         function updateFolderLabelStatus(connected) {
             const lbl = document.getElementById('folder-label');
             if (connected) {
-                document.getElementById('music-status').innerHTML = `🟢 <strong>Cabinet opérationnel !</strong> Tri hiérarchique actif.`;
+                document.getElementById('music-status').innerHTML = `🟢 <strong>Cabinet opérationnel !</strong> Rangement optimisé.`;
                 lbl.innerText = "🟢 Dossier Connecté :";
                 lbl.className = "block text-xs text-green-400 mb-1 font-bold";
             } else {
@@ -231,7 +234,7 @@
             mediaItems.sort((a, b) => {
                 let compArtist = getBestArtist(a).localeCompare(getBestArtist(b));
                 if (compArtist !== 0) return compArtist;
-                let compAlbum = a.album.localeCompare(b.album);
+                let compAlbum = getCleanAlbumName(a).localeCompare(getCleanAlbumName(b));
                 if (compAlbum !== 0) return compAlbum;
                 return a.name.localeCompare(b.name);
             });
@@ -240,7 +243,7 @@
             document.getElementById('music-status').innerText = "🗂️ Classé de A à Z par Chanteurs.";
         }
 
-        // INTELLIGENCE DE TRAJECTOIRE LOCALE POUR EVITER LES FAUX DOUBLONS
+        // PARSEUR DE CHEMIN ULTRA-INTELLIGENT (Résolution Multi-CD)
         function importFiles(e) {
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             if(files.length === 0) return;
@@ -266,21 +269,28 @@
             
             if (!isReconnection) {
                 mediaItems = files.map((f, i) => {
-                    // Analyse intelligente de l'arborescence locale (DossierArtiste/DossierAlbum)
                     let guessedArtist = "Artiste Inconnu";
                     let guessedAlbum = "Album Inconnu";
+                    let pathLower = f.webkitRelativePath ? f.webkitRelativePath.toLowerCase() : "";
+                    
                     if (f.webkitRelativePath) {
                         const parts = f.webkitRelativePath.split('/');
-                        if (parts.length >= 3) {
-                            guessedAlbum = parts[parts.length - 2];
-                            guessedArtist = parts[parts.length - 3];
+                        if (parts.length >= 2) {
+                            let immediateParent = parts[parts.length - 2];
+                            // PROTECTION MULTI-CD : Si le sous-dossier est un CD, on prend le dossier au-dessus
+                            if (/^(cd|dis[qu]+e|vol|volume)\s*\d+/i.test(immediateParent) && parts.length >= 3) {
+                                guessedAlbum = parts[parts.length - 3];
+                                if (parts.length >= 4) { guessedArtist = parts[parts.length - 4]; }
+                            } else {
+                                guessedAlbum = immediateParent;
+                                if (parts.length >= 3) { guessedArtist = parts[parts.length - 3]; }
+                            }
                         }
                     }
-                    if (guessedArtist === "Artiste Inconnu") {
-                        let cleanName = f.name.replace(/\.(mp3|wav|m4a|flac|ogg)$/i, '');
-                        if (cleanName.includes('-')) { guessedArtist = cleanName.split('-')[0].trim(); }
-                    }
-                    return { file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, index: i };
+                    return { 
+                        file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, 
+                        guessedAlbum: guessedAlbum, pathLower: pathLower, index: i 
+                    };
                 });
             } else {
                 let startIdx = mediaItems.length;
@@ -288,14 +298,24 @@
                     if (!mediaItems.find(item => item.name === f.name)) {
                         let guessedArtist = "Artiste Inconnu";
                         let guessedAlbum = "Album Inconnu";
+                        let pathLower = f.webkitRelativePath ? f.webkitRelativePath.toLowerCase() : "";
                         if (f.webkitRelativePath) {
                             const parts = f.webkitRelativePath.split('/');
-                            if (parts.length >= 3) {
-                                guessedAlbum = parts[parts.length - 2];
-                                guessedArtist = parts[parts.length - 3];
+                            if (parts.length >= 2) {
+                                let immediateParent = parts[parts.length - 2];
+                                if (/^(cd|dis[qu]+e|vol|volume)\s*\d+/i.test(immediateParent) && parts.length >= 3) {
+                                    guessedAlbum = parts[parts.length - 3];
+                                    if (parts.length >= 4) { guessedArtist = parts[parts.length - 4]; }
+                                } else {
+                                    guessedAlbum = immediateParent;
+                                    if (parts.length >= 3) { guessedArtist = parts[parts.length - 3]; }
+                                }
                             }
                         }
-                        mediaItems.push({ file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, index: startIdx++ });
+                        mediaItems.push({ 
+                            file: f, name: f.name, album: guessedAlbum, artist: guessedArtist, 
+                            guessedAlbum: guessedAlbum, pathLower: pathLower, index: startIdx++ 
+                        });
                     }
                 });
             }
@@ -324,7 +344,11 @@
                                         const len = data.length;
                                         for (let j = 0; j < len; j++) { binary += String.fromCharCode(data[j]); }
                                         const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(binary);
+                                        
+                                        // On stocke l'image sous le nom d'album brut et propre pour parer toutes les requêtes
                                         albumCovers[item.album] = b64;
+                                        albumCovers[getCleanAlbumName(item)] = b64;
+                                        
                                         try { localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers)); } catch(err) {}
                                         coversFound++;
                                     } catch(imgErr) {}
@@ -364,7 +388,10 @@
 
         function saveTracksToCache() {
             try {
-                const minimalCache = mediaItems.map(m => ({ name: m.name, artist: m.artist, album: m.album, index: m.index }));
+                const minimalCache = mediaItems.map(m => ({ 
+                    name: m.name, artist: m.artist, album: m.album, 
+                    guessedAlbum: m.guessedAlbum || m.album, pathLower: m.pathLower || "", index: m.index 
+                }));
                 localStorage.setItem('jukebox_cached_tracks', JSON.stringify(minimalCache));
             } catch(e) {}
         }
@@ -383,19 +410,38 @@
             renderAlbumsOnly();
         }
 
-        function clearSearch() { document.getElementById('search-input').value = ""; filterMedia(); }
+        function clearSearch() { 
+            document.getElementById('search-input').value = ""; 
+            mediaItems.forEach(item => {
+                const row = document.getElementById(`track-row-${item.index}`);
+                if (row) row.style.display = '';
+            });
+            renderAlbumsOnly(); 
+        }
 
-        function viewExactAlbum(albumName, artistName) {
-            document.getElementById('search-input').value = albumName;
+        // FONCTION DE NAVIGATION SUPRÊME : Isole proprement l'album (Normal ou Compilation)
+        function viewExactAlbumGroup(cleanAlbumName, artistName, rawAlbumsJson) {
+            document.getElementById('search-input').value = cleanAlbumName;
+            const rawAlbums = JSON.parse(rawAlbumsJson);
+            
             mediaItems.forEach(item => {
                 const row = document.getElementById(`track-row-${item.index}`);
                 if (row) {
-                    const match = item.album === albumName && getBestArtist(item) === artistName;
+                    const itemCleanAlbum = getCleanAlbumName(item);
+                    let match = false;
+                    
+                    if (artistName === "Divers Artistes") {
+                        // Pour les compilations, on prend tous les morceaux de cet album peu importe le chanteur
+                        match = (itemCleanAlbum === cleanAlbumName || rawAlbums.includes(item.album));
+                    } else {
+                        // Pour un album classique, correspondance stricte de l'album et du chanteur
+                        match = (itemCleanAlbum === cleanAlbumName && getBestArtist(item) === artistName);
+                    }
                     row.style.display = match ? '' : 'none';
                 }
             });
             showTab('tracks');
-            document.getElementById('music-status').innerHTML = `🔍 Album : <strong>${albumName}</strong> de <strong>${artistName}</strong>.`;
+            document.getElementById('music-status').innerHTML = `🔍 Album : <strong>${cleanAlbumName}</strong> (${artistName}). Cliquez sur la croix (X) de recherche pour tout réafficher.`;
         }
 
         function quickSearchArtist(index) {
@@ -479,24 +525,47 @@
                 </tr>`).join('');
         }
 
-        // FUSION ET FILTRAGE UNIQUE SANS DUPLICATION PAR TITRE
+        // FUSION FANTOMATIQUE DES DUPLICATIONS (ALBUMS UNIQUES & COMPILATIONS AUTOMATIQUES)
         function renderAlbumsOnly() {
             const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             const filteredItems = mediaItems.filter(item => {
                 return item.name.toLowerCase().includes(query) || item.artist.toLowerCase().includes(query) || item.album.toLowerCase().includes(query);
             });
             
+            // Étape A : Cartographie des artistes par Album propre
+            const albumArtistsMap = {};
+            filteredItems.forEach(item => {
+                const cleanAlbum = getCleanAlbumName(item);
+                if (!albumArtistsMap[cleanAlbum]) { albumArtistsMap[cleanAlbum] = new Set(); }
+                albumArtistsMap[cleanAlbum].add(getBestArtist(item));
+            });
+            
+            // Étape B : Regroupement et fusion dans la structure finale
             const albumMap = {};
             filteredItems.forEach(item => {
-                const artistName = getBestArtist(item);
-                const albumName = item.album;
-                const uniqueKey = `${artistName} ||| ${albumName}`; // Fusion stricte par couple Artiste / Album
+                const cleanAlbum = getCleanAlbumName(item);
+                const pathLower = item.pathLower || "";
+                
+                // Détection Automatique : Si un album contient plusieurs chanteurs ou est dans le dossier compilation
+                let displayArtist = getBestArtist(item);
+                if (albumArtistsMap[cleanAlbum].size > 1 || pathLower.includes('compilations')) {
+                    displayArtist = "Divers Artistes";
+                }
+                
+                const uniqueKey = `${displayArtist} ||| ${cleanAlbum}`;
+                
                 if (!albumMap[uniqueKey]) {
                     albumMap[uniqueKey] = {
-                        album: albumName,
-                        artist: artistName,
-                        cover: albumCovers[albumName]
+                        album: cleanAlbum,
+                        artist: displayArtist,
+                        cover: albumCovers[item.album] || albumCovers[cleanAlbum] || null,
+                        rawAlbumNames: new Set([item.album])
                     };
+                } else {
+                    albumMap[uniqueKey].rawAlbumNames.add(item.album);
+                    if (!albumMap[uniqueKey].cover && albumCovers[item.album]) {
+                        albumMap[uniqueKey].cover = albumCovers[item.album];
+                    }
                 }
             });
 
@@ -504,8 +573,10 @@
             
             document.getElementById('view-albums').innerHTML = sortedKeys.map(key => {
                 const alb = albumMap[key];
+                const rawAlbumsJson = JSON.stringify(Array.from(alb.rawAlbumNames)).replace(/'/g, "\\'");
+                
                 return `
-                <div onclick="viewExactAlbum('${alb.album.replace(/'/g, "\\'")}', '${alb.artist.replace(/'/g, "\\'")}')" class="p-2 sm:p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow cursor-pointer hover:border-white transition group">
+                <div onclick="viewExactAlbumGroup('${alb.album.replace(/'/g, "\\'")}', '${alb.artist.replace(/'/g, "\\'")}', '${rawAlbumsJson}')" class="p-2 sm:p-3 border border-[#bda06a]/30 text-center bg-[#26211c] rounded flex flex-col justify-between shadow cursor-pointer hover:border-white transition group">
                     <div class="w-full aspect-square border border-[#bda06a]/50 bg-stone-950 flex items-center justify-center overflow-hidden rounded relative">
                         ${alb.cover ? `<img src="${alb.cover}" class="grid-thumb w-full h-full object-cover">` : `<div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-3xl sm:text-4xl text-stone-600 mb-1"></i></div>`}
                     </div>

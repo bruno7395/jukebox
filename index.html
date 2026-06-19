@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel (v7.1)</title>
+    <title>Discothèque Privée - Cabinet Personnel (v7.2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,26 +30,31 @@
 
     <!-- VUE JUKEBOX -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Totale</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Autonome & Persistante</h2>
         <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
+        <!-- BARRE D'OUTILS ET DE TRI -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
             <div>
-                <label class="block text-xs text-[#bda06a] mb-1 font-bold">Sélectionner un dossier (PC) :</label>
+                <label id="folder-label" class="block text-xs text-[#bda06a] mb-1 font-bold">Sélectionner ou réactiver un dossier :</label>
                 <input type="file" webkitdirectory directory multiple class="text-xs cursor-pointer w-full text-stone-400" onchange="importFiles(event)">
             </div>
             <div class="relative">
-                <input type="text" id="search-input" oninput="filterMedia()" placeholder="🔍 Taper un artiste, album, genre..." class="bg-black p-2 pr-8 border border-[#bda06a] text-white rounded text-sm w-full focus:outline-none focus:border-white">
+                <input type="text" id="search-input" oninput="filterMedia()" placeholder="🔍 Taper un artiste, album, compilation..." class="bg-black p-2 pr-8 border border-[#bda06a] text-white rounded text-sm w-full focus:outline-none focus:border-white">
                 <button onclick="clearSearch()" class="absolute right-2.5 top-2.5 text-stone-500 hover:text-white text-xs"><i class="fa fa-times"></i></button>
             </div>
-            <div class="flex items-center justify-between md:justify-end gap-4 text-xs text-[#bda06a]">
-                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                    <input type="checkbox" id="auto-next" checked class="accent-[#bda06a]"> Enchaînement
+            <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 text-xs text-[#bda06a]">
+                <!-- Boutons de Tri Intelligent -->
+                <button onclick="sortByArtist()" class="bg-[#26211c] border border-[#bda06a] px-2 py-1 rounded hover:bg-[#bda06a] hover:text-black transition font-bold"><i class="fa fa-sort-alpha-down"></i> Artiste ➔ Album</button>
+                <button onclick="sortByName()" class="bg-[#26211c] border border-[#bda06a] px-2 py-1 rounded hover:bg-[#bda06a] hover:text-black transition font-bold">🔤 Titre</button>
+                
+                <label class="inline-flex items-center gap-1 cursor-pointer select-none ml-1">
+                    <input type="checkbox" id="auto-next" checked class="accent-[#bda06a]"> Suivi
                 </label>
-                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                    <input type="checkbox" id="shuffle-mode" class="accent-[#bda06a]"> <i class="fa fa-random"></i> Aléatoire
+                <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                    <input type="checkbox" id="shuffle-mode" class="accent-[#bda06a]"> <i class="fa fa-random"></i>
                 </label>
-                <button onclick="clearImageCache()" class="border border-red-900/40 text-red-400/70 p-1.5 rounded bg-red-950/10">
+                <button onclick="clearAllCache()" title="Réinitialiser l'application" class="border border-red-900/40 text-red-400/70 p-1.5 rounded bg-red-950/10 hover:text-red-400 transition">
                     <i class="fa fa-trash"></i>
                 </button>
             </div>
@@ -61,7 +66,7 @@
         </div>
 
         <div id="music-status" class="text-sm text-[#bda06a] mb-4 bg-black/40 p-3 rounded border border-[#bda06a]/20 italic text-center sm:text-left">
-            Prêt pour le scan...
+            Chargement du Cabinet...
         </div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[45vh] bg-black/20 rounded border border-stone-800">
@@ -93,7 +98,7 @@
         </div>
     </div>
 
-    <!-- VUE ENCYCLOPÉDIE AVEC GRILLE D'ALBUMS ILLUSTRÉE -->
+    <!-- VUE ENCYCLOPÉDIE VISUELLE -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
         <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie Visuelle</h2>
         <div class="flex gap-2 mb-6">
@@ -101,7 +106,7 @@
             <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded hover:bg-[#e5c185] transition">Chercher</button>
             <button onclick="changeView('jukebox')" class="border p-2 rounded hover:bg-white/5 transition">Retour</button>
         </div>
-        <div id="wiki-results" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
     </div>
 
     <!-- AUDIO CACHÉ -->
@@ -117,7 +122,23 @@
         let activeBlobUrl = null;
         let currentTrackIndex = -1;
 
+        // Lecture des deux mémoires au démarrage de l'écran
         let albumCovers = JSON.parse(localStorage.getItem('jukebox_saved_covers')) || {};
+        let cachedTracks = JSON.parse(localStorage.getItem('jukebox_cached_tracks')) || [];
+
+        window.onload = function() {
+            if (cachedTracks.length > 0) {
+                // On remonte l'arborescence instantanément (sans fichiers physiques liés pour le moment)
+                mediaItems = cachedTracks.map(t => ({ ...t, file: null }));
+                renderTracksOnly();
+                renderAlbumsOnly();
+                document.getElementById('music-status').innerHTML = `📋 <strong>${mediaItems.length} morceaux</strong> chargés depuis la mémoire ! <br><span class="text-xs text-amber-400 font-bold animate-pulse">⚠️ Cliquez sur le dossier pour activer instantanément la lecture (Reconnexion Éclair).</span>`;
+                document.getElementById('folder-label').innerText = "🔴 Réactiver le son :";
+                document.getElementById('folder-label').className = "block text-xs text-red-400 mb-1 font-bold animate-pulse";
+            } else {
+                document.getElementById('music-status').innerText = "Prêt pour votre premier scan complet (MP3, FLAC, OGG, WAV, M4A)...";
+            }
+        };
 
         player.onended = function() {
             if (document.getElementById('auto-next')?.checked) { playNextTrack(); }
@@ -125,15 +146,13 @@
 
         player.ontimeupdate = function() {
             if (!player.duration) return;
-            const pct = (player.currentTime / player.duration) * 100;
-            seekSlider.value = pct;
+            seekSlider.value = (player.currentTime / player.duration) * 100;
             document.getElementById('time-current').innerText = formatTime(player.currentTime);
             document.getElementById('time-duration').innerText = formatTime(player.duration);
         };
 
         function formatTime(secs) {
-            let m = Math.floor(secs / 60);
-            let s = Math.floor(secs % 60);
+            let m = Math.floor(secs / 60); let s = Math.floor(secs % 60);
             return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
@@ -161,12 +180,9 @@
 
         function changeView(view) {
             if (view === 'home') {
-                player.pause();
-                mainPlayIcon.className = 'fa fa-play text-base pl-0.5';
+                player.pause(); mainPlayIcon.className = 'fa fa-play text-base pl-0.5';
                 if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
-                player.src = "";
-                removeTrackHighlight(currentTrackIndex);
-                currentTrackIndex = -1;
+                player.src = ""; removeTrackHighlight(currentTrackIndex); currentTrackIndex = -1;
             }
             document.getElementById('home-view').style.display = (view === 'home') ? 'block' : 'none';
             document.getElementById('jukebox-view').style.display = (view === 'jukebox') ? 'block' : 'none';
@@ -187,64 +203,106 @@
             return cleanName.trim(); 
         }
 
+        // SYSTÈME DE TRI DE HAUTE PRÉCISION
+        function sortByArtist() {
+            if (mediaItems.length === 0) return;
+            removeTrackHighlight(currentTrackIndex); currentTrackIndex = -1;
+            
+            mediaItems.sort((a, b) => {
+                let compArtist = getBestArtist(a).localeCompare(getBestArtist(b));
+                if (compArtist !== 0) return compArtist; // Tri principal : Artiste
+                
+                let compAlbum = a.album.localeCompare(b.album);
+                if (compAlbum !== 0) return compAlbum; // Tri secondaire : Album (pour séparer compilations/originaux)
+                
+                return a.name.localeCompare(b.name); // Tri tertiaire : Nom de fichier
+            });
+
+            // Réindexation propre après déplacement
+            mediaItems.forEach((item, idx) => item.index = idx);
+            renderTracksOnly(); renderAlbumsOnly();
+            document.getElementById('music-status').innerText = "🗂️ Bibliothèque classée : Artiste ➔ Album ➔ Chanson.";
+        }
+
+        function sortByName() {
+            if (mediaItems.length === 0) return;
+            removeTrackHighlight(currentTrackIndex); currentTrackIndex = -1;
+            mediaItems.sort((a, b) => a.name.localeCompare(b.name));
+            mediaItems.forEach((item, idx) => item.index = idx);
+            renderTracksOnly(); renderAlbumsOnly();
+            document.getElementById('music-status').innerText = "🔤 Bibliothèque classée par titres de A à Z.";
+        }
+
         function importFiles(e) {
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             if(files.length === 0) return;
 
+            // PARADE DE RECONNEXION ÉCLAIR : Si on a déjà des données en cache
+            if (mediaItems.length > 0 && cachedTracks.length > 0) {
+                document.getElementById('music-status').innerText = "⚡ Reconnexion éclair des fichiers musicaux...";
+                let linked = 0;
+                mediaItems.forEach(item => {
+                    const match = files.find(f => f.name === item.name);
+                    if (match) { item.file = match; linked++; }
+                });
+                if (linked > 0) {
+                    document.getElementById('music-status').innerHTML = `🟢 <strong>${linked} morceaux activés et prêts !</strong> Lecture débloquée.`;
+                    document.getElementById('folder-label').innerText = "🟢 Dossier Connecté :";
+                    document.getElementById('folder-label').className = "block text-xs text-green-400 mb-1 font-bold";
+                    return; // Fin immédiate, le Jukebox est réveillé !
+                }
+            }
+
+            // PREMIER SCAN ET INDEXATION DE TAGS (Seulement si la mémoire était vide)
             document.getElementById('search-input').value = "";
-            document.getElementById('music-status').innerText = `⏳ Indexation locale de ${files.length} fichiers...`;
+            document.getElementById('music-status').innerText = `⏳ Premier Scan global : Indexation de ${files.length} fichiers...`;
 
             mediaItems = files.map((f, i) => ({
-                file: f,
-                name: f.name,
-                album: "Album Inconnu",
-                artist: "Artiste Inconnu",
-                index: i
+                file: f, name: f.name, album: "Album Inconnu", artist: "Artiste Inconnu", index: i
             }));
 
-            renderTracksOnly();
-            renderAlbumsOnly();
-            
-            let processed = 0;
-            let coversFound = 0;
+            renderTracksOnly(); renderAlbumsOnly();
+            let processed = 0; let coversFound = 0;
 
             mediaItems.forEach((item) => {
                 window.jsmediatags.read(item.file, {
                     onSuccess: (t) => {
                         if (t.tags.album && t.tags.album.trim() !== "") item.album = t.tags.album.trim();
                         if (t.tags.artist && t.tags.artist.trim() !== "") item.artist = t.tags.artist.trim();
-                        
                         if(t.tags.picture) {
                             const b64 = "data:" + t.tags.picture.format + ";base64," + btoa(String.fromCharCode(...t.tags.picture.data));
                             albumCovers[item.album] = b64;
                             localStorage.setItem('jukebox_saved_covers', JSON.stringify(albumCovers));
                             coversFound++;
                         }
-                        
-                        const trackText = document.getElementById(`track-text-${item.index}`);
-                        if(trackText) {
-                            trackText.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
-                        }
+                        const txt = document.getElementById(`track-text-${item.index}`);
+                        if(txt) txt.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-[#bda06a]">${item.artist} — ${item.album}</span>`;
                         
                         processed++;
                         if (processed % 30 === 0 || processed === mediaItems.length) {
-                            document.getElementById('music-status').innerText = `⏳ Analyse des fichiers : ${processed}/${mediaItems.length} — ${coversFound} pochettes extraites.`;
+                            document.getElementById('music-status').innerText = `⏳ Analyse : ${processed}/${mediaItems.length} — ${coversFound} images.`;
                             renderAlbumsOnly();
                         }
+                        if (processed === mediaItems.length) { finalizeScan(); }
                     },
                     onError: () => {
-                        const trackText = document.getElementById(`track-text-${item.index}`);
-                        if(trackText) {
-                            let guessedArtist = getBestArtist(item);
-                            trackText.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-stone-500">${guessedArtist} — Formats Spéciaux</span>`;
-                        }
+                        const txt = document.getElementById(`track-text-${item.index}`);
+                        if(txt) txt.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-stone-500">${getBestArtist(item)} — Format Spécial</span>`;
                         processed++;
-                        if (processed % 30 === 0 || processed === mediaItems.length) {
-                            document.getElementById('music-status').innerText = `⏳ Analyse des fichiers : ${processed}/${mediaItems.length}`;
-                        }
+                        if (processed % 30 === 0 || processed === mediaItems.length) { renderAlbumsOnly(); }
+                        if (processed === mediaItems.length) { finalizeScan(); }
                     }
                 });
             });
+        }
+
+        function finalizeScan() {
+            // Sauvegarde de l'arborescence texte pour le futur sans rechargement
+            const minimalCache = mediaItems.map(m => ({ name: m.name, artist: m.artist, album: m.album, index: m.index }));
+            localStorage.setItem('jukebox_cached_tracks', JSON.stringify(minimalCache));
+            document.getElementById('music-status').innerHTML = `✅ Collection verrouillée en mémoire ! (${mediaItems.length} morceaux)`;
+            document.getElementById('folder-label').innerText = "🟢 Dossier Connecté :";
+            document.getElementById('folder-label').className = "block text-xs text-green-400 mb-1 font-bold";
         }
 
         function filterMedia() {
@@ -261,43 +319,38 @@
             renderAlbumsOnly();
         }
 
-        function clearSearch() {
-            document.getElementById('search-input').value = "";
-            filterMedia();
-        }
+        function clearSearch() { document.getElementById('search-input').value = ""; filterMedia(); }
 
         function quickSearchArtist(index) {
             const item = mediaItems[index];
-            let artist = getBestArtist(item);
-            document.getElementById('wiki-input').value = artist;
-            changeView('wiki');
-            searchWiki();
+            document.getElementById('wiki-input').value = getBestArtist(item);
+            changeView('wiki'); searchWiki();
         }
 
         function quickSearchArtistFromAlbum(albumName) {
             const match = mediaItems.find(item => item.album === albumName);
             if (match) {
-                let artist = getBestArtist(match);
-                document.getElementById('wiki-input').value = artist;
-                changeView('wiki');
-                searchWiki();
+                document.getElementById('wiki-input').value = getBestArtist(match);
+                changeView('wiki'); searchWiki();
             }
         }
 
         function playTrack(index) {
             if (index < 0 || index >= mediaItems.length) return;
+            const item = mediaItems[index];
+            if (!item.file) {
+                alert("⚠️ Son inactif : Veuillez d'abord cliquer sur le bouton de dossier en haut pour réactiver la lecture instantanée !");
+                return;
+            }
             removeTrackHighlight(currentTrackIndex);
-
             if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); }
             
             currentTrackIndex = index;
-            const item = mediaItems[index];
             activeBlobUrl = URL.createObjectURL(item.file);
             player.src = activeBlobUrl;
             player.play();
             mainPlayIcon.className = 'fa fa-pause text-base';
             document.getElementById('music-status').innerText = `▶ ${item.name}`;
-
             applyTrackHighlight(index);
         }
 
@@ -328,40 +381,31 @@
         function playNextTrack() {
             const visibleIndices = getVisibleTrackIndices();
             if (visibleIndices.length === 0) return;
-
             if (document.getElementById('shuffle-mode')?.checked) {
-                const randomIndex = visibleIndices[Math.floor(Math.random() * visibleIndices.length)];
-                playTrack(randomIndex); return;
+                playTrack(visibleIndices[Math.floor(Math.random() * visibleIndices.length)]); return;
             }
-
-            let currentIndexInVisible = visibleIndices.indexOf(currentTrackIndex);
-            if (currentIndexInVisible !== -1 && currentIndexInVisible < visibleIndices.length - 1) {
-                playTrack(visibleIndices[currentIndexInVisible + 1]);
-            } else {
-                playTrack(visibleIndices[0]);
-            }
+            let idx = visibleIndices.indexOf(currentTrackIndex);
+            if (idx !== -1 && idx < visibleIndices.length - 1) { playTrack(visibleIndices[idx + 1]); }
+            else { playTrack(visibleIndices[0]); }
         }
 
         function playPrevTrack() {
             const visibleIndices = getVisibleTrackIndices();
             if (visibleIndices.length === 0 || currentTrackIndex === -1) return;
-
-            let currentIndexInVisible = visibleIndices.indexOf(currentTrackIndex);
-            if (currentIndexInVisible !== -1 && currentIndexInVisible > 0) {
-                playTrack(visibleIndices[currentIndexInVisible - 1]);
-            } else {
-                playTrack(visibleIndices[visibleIndices.length - 1]);
-            }
+            let idx = visibleIndices.indexOf(currentTrackIndex);
+            if (idx !== -1 && idx > 0) { playTrack(visibleIndices[idx - 1]); }
+            else { playTrack(visibleIndices[visibleIndices.length - 1]); }
         }
 
         function renderTracksOnly() {
             document.getElementById('media-list').innerHTML = mediaItems.map((f, i) => `
-                <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition" id="track-row-${i}">
-                    <td class="p-3 cursor-pointer" id="track-text-${i}" onclick="quickSearchArtist(${i})">
+                <tr class="border-b border-[#bda06a]/20 hover:bg-white/5 transition" id="track-row-${f.index}">
+                    <td class="p-3 cursor-pointer" id="track-text-${f.index}" onclick="quickSearchArtist(${f.index})">
                         <span class="font-bold text-white text-sm sm:text-base">${f.name}</span>
+                        ${f.artist !== "Artiste Inconnu" ? `<br><span class="text-xs text-[#bda06a]/80">${f.artist} — ${f.album}</span>` : ''}
                     </td>
                     <td class="p-3 text-right">
-                        <button onclick="event.stopPropagation(); playTrack(${i})" class="text-[#bda06a] hover:text-white p-2 text-lg transition"><i id="play-icon-${i}" class="fa fa-play"></i></button>
+                        <button onclick="event.stopPropagation(); playTrack(${f.index})" class="text-[#bda06a] hover:text-white p-2 text-lg transition"><i id="play-icon-${f.index}" class="fa fa-play"></i></button>
                     </td>
                 </tr>`).join('');
         }
@@ -369,11 +413,8 @@
         function renderAlbumsOnly() {
             const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             const filteredItems = mediaItems.filter(item => {
-                return item.name.toLowerCase().includes(query) || 
-                       item.artist.toLowerCase().includes(query) || 
-                       item.album.toLowerCase().includes(query);
+                return item.name.toLowerCase().includes(query) || item.artist.toLowerCase().includes(query) || item.album.toLowerCase().includes(query);
             });
-
             const uniqueAlbums = [...new Set(filteredItems.map(item => item.album))];
             
             document.getElementById('view-albums').innerHTML = uniqueAlbums.map(albumName => {
@@ -388,34 +429,31 @@
             }).join('');
         }
 
-        function clearImageCache() {
-            if(confirm("Voulez-vous vider la mémoire des pochettes enregistrées ?")) {
-                localStorage.removeItem('jukebox_saved_covers');
-                albumCovers = {}; renderAlbumsOnly();
-                document.getElementById('music-status').innerText = "🗑️ Mémoire nettoyée.";
+        function clearAllCache() {
+            if(confirm("Voulez-vous vider la mémoire complète (Pochettes + Liste enregistrée) ?")) {
+                localStorage.removeItem('jukebox_saved_covers'); localStorage.removeItem('jukebox_cached_tracks');
+                albumCovers = {}; mediaItems = []; renderTracksOnly(); renderAlbumsOnly();
+                document.getElementById('music-status').innerText = "🗑️ Tout a été effacé.";
+                document.getElementById('folder-label').innerText = "Sélectionner un dossier :";
+                document.getElementById('folder-label').className = "block text-xs text-[#bda06a] mb-1 font-bold";
             }
         }
 
-        // MOTEUR ENCYCLOPÉDIQUE AMÉLIORÉ ET ILLUSTRÉ
         async function searchWiki() {
-            const q = document.getElementById('wiki-input').value;
-            const res = document.getElementById('wiki-results');
+            const q = document.getElementById('wiki-input').value; const res = document.getElementById('wiki-results');
             if(!q.trim()) return;
-            res.innerHTML = "<div class='col-span-full text-[#bda06a] italic text-center'>Recherche de la biographie et des pochettes...</div>";
+            res.innerHTML = "<div class='col-span-full text-[#bda06a] italic text-center'>Analyse de la biographie et des livrets d'albums...</div>";
             try {
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const t = s.query.search[0].title;
                 const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
                 const m = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${t}"&limit=8&fmt=json`).then(r => r.json());
                 
-                // Rendu de la biographie + injection de la vraie grille de pochettes
                 res.innerHTML = `<div class="parchment col-span-full mb-2"><h3 class="text-xl font-bold text-[#bda06a]">${w.title}</h3><p class="text-sm mt-2 leading-relaxed text-stone-300">${w.extract}</p></div>` + 
                     m.releases.map(r => `
                     <div class="parchment p-3 text-center flex flex-col justify-between items-center shadow rounded border border-[#bda06a]/30 bg-[#26211c]">
                         <div class="w-full aspect-square border border-[#bda06a]/40 bg-stone-950 flex items-center justify-center overflow-hidden rounded mb-2 relative">
-                            <!-- Appel direct au Cover Art Archive -->
                             <img src="https://coverartarchive.org/release/${r.id}/front" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <!-- Disque de secours masqué par défaut -->
                             <div class="absolute inset-0 hidden flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-3xl text-stone-600"></i></div>
                         </div>
                         <p class="text-[11px] font-bold truncate w-full text-white" title="${r.title}">${r.title}</p>

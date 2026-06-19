@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Discothèque Privée - Cabinet Personnel (v7.0)</title>
+    <title>Discothèque Privée - Cabinet Personnel (v7.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,14 +21,16 @@
 </head>
 <body class="p-4 sm:p-6 mb-32">
 
+    <!-- ÉCRAN D'ACCUEIL -->
     <div id="home-view" class="max-w-md mx-auto mt-10 sm:mt-20 parchment text-center">
         <h1 class="text-3xl sm:text-4xl font-serif text-[#bda06a] mb-8">Discothèque Privée</h1>
         <button onclick="changeView('jukebox')" class="btn-menu">1. Entrer dans le Cabinet</button>
         <button onclick="changeView('wiki')" class="btn-menu">2. Encyclopédie</button>
     </div>
 
+    <!-- VUE JUKEBOX -->
     <div id="jukebox-view" class="hidden max-w-6xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Totale (Multi-Formats)</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4 text-center sm:text-left">Médiathèque Totale</h2>
         <button onclick="changeView('home')" class="underline mb-4 block hover:text-white transition">Retour</button>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-center bg-black/20 p-4 rounded border border-stone-800">
@@ -59,7 +61,7 @@
         </div>
 
         <div id="music-status" class="text-sm text-[#bda06a] mb-4 bg-black/40 p-3 rounded border border-[#bda06a]/20 italic text-center sm:text-left">
-            Prêt pour le scan (MP3, FLAC, OGG, WAV, M4A)...
+            Prêt pour le scan...
         </div>
 
         <div id="view-tracks" class="overflow-y-auto max-h-[45vh] bg-black/20 rounded border border-stone-800">
@@ -68,6 +70,7 @@
         
         <div id="view-albums" class="hidden grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 max-h-[45vh] overflow-y-auto p-1"></div>
         
+        <!-- LECTEUR DE CONTRÔLE SUPRÊME -->
         <div class="fixed bottom-0 left-0 w-full bg-[#161310] p-4 border-t border-[#bda06a] z-50 flex flex-col gap-3 shadow-2xl">
             <div class="w-full flex items-center gap-3 px-1">
                 <span id="time-current" class="text-[11px] font-mono text-stone-400 min-w-[35px]">00:00</span>
@@ -90,17 +93,19 @@
         </div>
     </div>
 
-    <audio id="player" class="hidden"></audio>
-
+    <!-- VUE ENCYCLOPÉDIE AVEC GRILLE D'ALBUMS ILLUSTRÉE -->
     <div id="wiki-view" class="hidden max-w-4xl mx-auto parchment">
-        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie</h2>
+        <h2 class="text-2xl text-[#bda06a] font-serif mb-4">Encyclopédie Visuelle</h2>
         <div class="flex gap-2 mb-6">
-            <input type="text" id="wiki-input" onkeypress="if(event.key === 'Enter') searchWiki()" class="bg-black p-2 border border-[#bda06a] flex-grow text-white rounded">
-            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded">Chercher</button>
-            <button onclick="changeView('jukebox')" class="border p-2 rounded">Retour</button>
+            <input type="text" id="wiki-input" onkeypress="if(event.key === 'Enter') searchWiki()" class="bg-black p-2 border border-[#bda06a] flex-grow text-white rounded focus:outline-none">
+            <button onclick="searchWiki()" class="bg-[#bda06a] p-2 text-black font-bold rounded hover:bg-[#e5c185] transition">Chercher</button>
+            <button onclick="changeView('jukebox')" class="border p-2 rounded hover:bg-white/5 transition">Retour</button>
         </div>
-        <div id="wiki-results" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <div id="wiki-results" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
     </div>
+
+    <!-- AUDIO CACHÉ -->
+    <audio id="player" class="hidden"></audio>
 
     <script>
         const player = document.getElementById('player');
@@ -137,7 +142,6 @@
             player.currentTime = (seekSlider.value / 100) * player.duration;
         }
 
-        // Contrôle du volume
         function changeVolume() {
             player.volume = volumeSlider.value;
             const icon = document.getElementById('volume-icon');
@@ -184,7 +188,6 @@
         }
 
         function importFiles(e) {
-            // OUVERTURE SÉCURISÉE AU FLAC ET À L'OGG
             const files = Array.from(e.target.files).filter(f => f.name.match(/\.(mp3|wav|m4a|flac|ogg)$/i));
             if(files.length === 0) return;
 
@@ -230,10 +233,8 @@
                         }
                     },
                     onError: () => {
-                        // Gestion robuste : si un FLAC n'a pas de tags, il est quand même validé pour la lecture !
                         const trackText = document.getElementById(`track-text-${item.index}`);
                         if(trackText) {
-                            // On tente d'extraire un semblant d'artiste depuis le nom de fichier brut
                             let guessedArtist = getBestArtist(item);
                             trackText.innerHTML = `<span class="font-bold text-white text-sm sm:text-base">${item.name}</span><br><span class="text-xs text-stone-500">${guessedArtist} — Formats Spéciaux</span>`;
                         }
@@ -395,19 +396,31 @@
             }
         }
 
+        // MOTEUR ENCYCLOPÉDIQUE AMÉLIORÉ ET ILLUSTRÉ
         async function searchWiki() {
             const q = document.getElementById('wiki-input').value;
             const res = document.getElementById('wiki-results');
             if(!q.trim()) return;
-            res.innerHTML = "Recherche...";
+            res.innerHTML = "<div class='col-span-full text-[#bda06a] italic text-center'>Recherche de la biographie et des pochettes...</div>";
             try {
                 const s = await fetch(`https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`).then(r => r.json());
                 const t = s.query.search[0].title;
                 const w = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
                 const m = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${t}"&limit=8&fmt=json`).then(r => r.json());
-                res.innerHTML = `<div class="parchment col-span-full"><h3 class="text-xl font-bold">${w.title}</h3><p class="text-sm mt-2 leading-relaxed">${w.extract}</p></div>` + 
-                    m.releases.map(r => `<div class="parchment p-2 text-center text-[10px] flex items-center justify-center"><p class="font-bold truncate w-full">${r.title}</p></div>`).join('');
-            } catch(e) { res.innerHTML = "Non trouvé."; }
+                
+                // Rendu de la biographie + injection de la vraie grille de pochettes
+                res.innerHTML = `<div class="parchment col-span-full mb-2"><h3 class="text-xl font-bold text-[#bda06a]">${w.title}</h3><p class="text-sm mt-2 leading-relaxed text-stone-300">${w.extract}</p></div>` + 
+                    m.releases.map(r => `
+                    <div class="parchment p-3 text-center flex flex-col justify-between items-center shadow rounded border border-[#bda06a]/30 bg-[#26211c]">
+                        <div class="w-full aspect-square border border-[#bda06a]/40 bg-stone-950 flex items-center justify-center overflow-hidden rounded mb-2 relative">
+                            <!-- Appel direct au Cover Art Archive -->
+                            <img src="https://coverartarchive.org/release/${r.id}/front" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <!-- Disque de secours masqué par défaut -->
+                            <div class="absolute inset-0 hidden flex-col items-center justify-center bg-stone-900/60"><i class="fa fa-compact-disc text-3xl text-stone-600"></i></div>
+                        </div>
+                        <p class="text-[11px] font-bold truncate w-full text-white" title="${r.title}">${r.title}</p>
+                    </div>`).join('');
+            } catch(e) { res.innerHTML = "<div class='col-span-full text-center'>Non trouvé.</div>"; }
         }
     </script>
 </body>
